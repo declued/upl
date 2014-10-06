@@ -1,0 +1,6 @@
+﻿This file contains a BOM at the beginning.
+This is a test.
+
+این هم چند کاراکتر فارسی.
+
+Done.
