@@ -15,7 +15,7 @@ Reporter::Reporter ()
 	: m_reports ()
 	, m_file_name_stack ()
 {
-	m_file_name_stack.emplace_back (L"???");
+	m_file_name_stack.emplace_back ("???");
 }
 
 //----------------------------------------------------------------------

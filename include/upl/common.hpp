@@ -2,6 +2,16 @@
 
 //======================================================================
 
+#if defined(_MSC_VER)
+	#define _CRT_SECURE_NO_WARNINGS
+	#define UPL_NOEXCEPT	throw()
+	#define vsnprintf		_vsnprintf
+#else
+	#define UPL_NOEXCEPT	nothrow
+#endif
+
+//======================================================================
+
 /* Everybody needs these: */
 #include <cassert>
 #include <cstdint>
@@ -9,15 +19,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-//======================================================================
-
-#if defined(_MSC_VER)
-	#define UPL_NOEXCEPT	throw()
-	#define vsnprintf		_vsnprintf
-#else
-	#define UPL_NOEXCEPT	nothrow
-#endif
 
 //======================================================================
 
@@ -32,7 +33,7 @@ typedef int64_t Int;
 typedef double Real;
 typedef bool Bool;
 
-typedef std::wstring Path;
+typedef std::string Path;
 
 //======================================================================
 
@@ -54,7 +55,7 @@ bool IsIdentContinuer (Char c);
 class Location
 {
 public:
-	Location (int line_no_ = 1, int column_no_ = 1, int char_no_ = 0)
+	Location (int line_no_ = 1, int column_no_ = 0, int char_no_ = 0)
 		: m_line_no (line_no_), m_column_no (column_no_), m_char_no (char_no_)
 	{}
 
@@ -66,7 +67,7 @@ public:
 	{
 		m_char_no += 1;
 		if (IsNewline(c))
-			m_line_no += 1, m_column_no = 1;
+			m_line_no += 1, m_column_no = 0;
 		else
 			m_column_no += 1;
 	}
@@ -80,7 +81,6 @@ private:
 //======================================================================
 
 /* String utilities: */
-
 template <typename T>
 String ToString (T v);
 
@@ -93,4 +93,3 @@ T FromString (String const & str);
 }	// namespace UPL
 
 //======================================================================
-

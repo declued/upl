@@ -97,7 +97,7 @@ String ToString (T v)
 //----------------------------------------------------------------------
 
 template <>
-String ToString<std::string const &> (std::string const & str)
+String ToString<std::string> (std::string str)
 {
 	String ret;
 	ret.reserve (str.size());
@@ -147,7 +147,7 @@ String ToString<bool> (bool v)
 //----------------------------------------------------------------------
 
 /* Now the explicit instantiations for the above: */
-template String ToString<std::string const &> (std::string const &);
+template String ToString<std::string> (std::string);
 template String ToString<std::wstring> (std::wstring);
 template String ToString<char const *> (char const *);
 template String ToString<wchar_t const *> (wchar_t const *);
