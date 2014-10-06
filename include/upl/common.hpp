@@ -4,10 +4,6 @@
 
 #if defined(_MSC_VER)
 	#define _CRT_SECURE_NO_WARNINGS
-	#define UPL_NOEXCEPT	throw()
-	#define vsnprintf		_vsnprintf
-#else
-	#define UPL_NOEXCEPT	nothrow
 #endif
 
 //======================================================================
@@ -19,6 +15,20 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+//======================================================================
+
+#if defined(_MSC_VER)
+	#define UPL_NOEXCEPT	throw()
+	#define vsnprintf		_vsnprintf
+#else
+	#define UPL_NOEXCEPT	nothrow
+#endif
+
+//======================================================================
+
+#define UPL_STRINGIZE_IMPL(s)	#s
+#define UPL_STRINGIZE(s)		UPL_STRINGIZE_IMPL(s)
 
 //======================================================================
 
