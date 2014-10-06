@@ -51,30 +51,6 @@ bool IsIdentContinuer (Char c);
 
 //======================================================================
 
-enum class ErrorCat
-{
-	Unknown,
-	Input,
-	Lexer,
-	Parser,
-	CodeGen,
-	VM,
-	Runtime,
-	Other,
-};
-
-//----------------------------------------------------------------------
-
-enum class ErrorSev
-{
-	Note,
-	Warning,
-	Error,
-	Fatal,
-};
-
-//======================================================================
-
 class Location
 {
 public:
