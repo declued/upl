@@ -27,6 +27,7 @@ add_library ("upl" STATIC
 	"include/upl/lexer.hpp"
 	"include/upl/parser.hpp"
 	"include/upl/symbols.hpp"
+	"include/upl/tokens.hpp"
 	"include/upl/vm.hpp"
 
 	"src/upl/ast.cpp"
@@ -38,6 +39,7 @@ add_library ("upl" STATIC
 	"src/upl/lexer.cpp"
 	"src/upl/parser.cpp"
 	"src/upl/symbols.cpp"
+	"src/upl/tokens.cpp"
 	"src/upl/vm.cpp"
 )
 

@@ -1,25 +1,26 @@
-#pragma once
-
 //======================================================================
 
-#include <upl/common.hpp>
+#include <upl/lexer.hpp>
 
-//======================================================================
-
-#define UPL_PRIVATE__TOKEN_TYPES(action)							\
-	action (/* 0,*/ Empty)			/**/							\
-	action (/* 1,*/ Error)											\
-	action (/* 2,*/ EOI)											\
-	action (/* 3,*/ Whitespace)		/*   */							\
-	action (/* 4,*/ Comment)		/* # */
-//	.
-//	.
-//	.
-
-//----------------------------------------------------------------------
 //======================================================================
 
 namespace UPL {
+
+//======================================================================
+
+#define TT_NAME_STRINGS(e)		UPL_STRINGIZE(e),
+static char const * s_token_names [TTCount] = { UPL_PRIVATE__TOKEN_TYPES(TT_NAME_STRINGS) };
+#undef TT_NAME_STRINGS
+
+//----------------------------------------------------------------------
+
+char const * TokenType2String (TT token_type)
+{
+	if (int(token_type) >= 0 && int(token_type) < TTCount)
+		return s_token_names[int(token_type)];
+	else
+		return nullptr;
+}
 
 //======================================================================
 //----------------------------------------------------------------------
@@ -28,4 +29,3 @@ namespace UPL {
 }	// namespace UPL
 
 //======================================================================
-
