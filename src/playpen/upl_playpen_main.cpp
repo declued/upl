@@ -43,7 +43,7 @@ void TestStringConversions ()
 	using std::endl;
 
 	wcout << UPL::ToString(-14414) << endl;
-	wcout << UPL::ToString(-14414LL) << endl;
+	wcout << UPL::ToString(int64_t(-14414LL)) << endl;
 	wcout << UPL::ToString(-14414.0f) << endl;
 	wcout << UPL::ToString(-14414.0) << endl;
 	wcout << UPL::ToString(false) << endl;
