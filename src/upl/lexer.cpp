@@ -105,7 +105,113 @@ bool Lexer::pop_name()
 
 bool Lexer::pop_numeric_literal()
 {
-	//
+	String number;
+	Location location;
+	enum {
+		INTEGER_PART,
+		FRACTIONAL_PART_FIRST,
+		FRACTIONAL_PART_REST,
+		EXPONENT_SIGN,
+		EXPONENT_VALUE_FIRST,
+		EXPONENT_VALUE_REST,
+		DONE_INTEGER,
+		DONE_REAL,
+		ERROR
+	} state = INTEGER_PART;
+
+	if (!IsDigit(current_char()))
+		return false;
+
+	location = current_location();
+
+	while (state != DONE_INTEGER && state != DONE_REAL && state != ERROR) {
+		char c = current_char();
+		switch (state) {
+		case INTEGER_PART:
+			if (IsDigit(c)) {
+				number += c;
+				consume_one_char();
+			}
+			else if (c == '.') {
+				number += c;
+				consume_one_char();
+				state = FRACTIONAL_PART_FIRST;
+			}
+			else {
+				state = DONE_INTEGER;
+			}
+			break;
+		case FRACTIONAL_PART_FIRST:
+			if (IsDigit(c)) {
+				number += c;
+				consume_one_char();
+				state = FRACTIONAL_PART_REST;
+			}
+			else {
+				state = ERROR;
+			}
+			break;
+		case FRACTIONAL_PART_REST:
+			if (IsDigit(c)) {
+				number += c;
+				consume_one_char();
+			}
+			else if (c == 'e') {
+				number += c;
+				consume_one_char();
+				state = EXPONENT_SIGN;
+			}
+			else {
+				state = DONE_REAL;
+			}
+			break;
+		case EXPONENT_SIGN:
+			if (c == '+' || c == '-') {
+				number += c;
+				consume_one_char();
+			}
+			state = EXPONENT_VALUE_FIRST;
+			break;
+		case EXPONENT_VALUE_FIRST:
+			if (IsDigit(c)) {
+				number += c;
+				consume_one_char();
+				state = EXPONENT_VALUE_REST;
+			}
+			else {
+				state = ERROR;
+			}
+			break;
+		case EXPONENT_VALUE_REST:
+			if (IsDigit(c)) {
+				number += c;
+				consume_one_char();
+			}
+			else {
+				state = DONE_REAL;
+			}
+			break;
+		}
+	}
+
+	if (state == DONE_INTEGER) {
+		Int value = stoll(number);
+		m_cur_tok = Token(TT::IntLiteral, location, number, value);
+
+		return true;
+	}
+	else if (state == DONE_REAL) {
+		Real value = stod(number);
+		m_cur_tok = Token(TT::RealLiteral, location, number, value);
+
+		return true;
+	}
+	else if (state == ERROR) {
+		m_cur_tok = Token(TT::Error, location, number);
+		return false;
+	}
+
+	return false;
 }
 
 bool Lexer::pop_string_literal()
