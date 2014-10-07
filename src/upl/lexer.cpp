@@ -25,8 +25,7 @@ bool Lexer::pop ()
 
 	while (consume_whitespace() || consume_comment());
 
-	if (pop_keyword() || pop_identifier() || pop_bool_literal() ||
-		pop_real_literal() || pop_int_literal() || pop_string_literal() ||
+	if (pop_name() || pop_numeric_literal() | pop_string_literal() ||
 		pop_separator() || pop_operator())
 	{
 		token_popped = true;
@@ -40,12 +39,11 @@ bool Lexer::consume_whitespace()
 	bool consumed_input = false;
 
 	while (has_more_input()) {
-		Char c = read_char();
-		if (!IsWhitespace(c)) {
-			unread_char(c);
+		Char c = current_char();
+		if (!IsWhitespace(c))
 			break;
-		}
 
+		consume_one_char();
 		consumed_input = true;
 	}
 
@@ -54,42 +52,58 @@ bool Lexer::consume_whitespace()
 
 bool Lexer::consume_comment()
 {
-	Char c = read_char();
-	if (c != COMMENT_START) {
-		unread_char(c);
+	if (current_char() != COMMENT_START)
 		return false;
-	}
 
 	while (has_more_input()) {
-		c = read_char();
+		Char c = current_char();
 		if (IsNewline(c))
 			break;
+
+		consume_one_char();
 	}
 
 	return true;
 }
 
-bool Lexer::pop_keyword()
+bool Lexer::pop_name()
 {
-	//
+	String name;
+	Location location;
+
+	if (!IsIdentStarter(current_char()))
+		return false;
+
+	/* save location and read the name */
+	location = current_location();
+	while (has_more_input() && IsIdentContinuer(current_char())) {
+		name += current_char();
+		consume_one_char();
+	}
+
+	/* check for bool literals */
+	if (name == FALSE_STR) {
+		m_cur_tok = Token(TT::BoolLiteral, location, name, false);
+		return true;
+	}
+	else if (name == TRUE_STR) {
+		m_cur_tok = Token(TT::BoolLiteral, location, name, true);
+		return true;
+	}
+
+	/* check for keywords */
+	for (int i = 0; i < KEYWORD_COUNT; i++)
+		if (name == KEYWORDS[i].first) {
+			m_cur_tok = Token(KEYWORDS[i].second, location, name);
+			return true;
+		}
+
+	/* otherwise it is a simple identifier */
+	m_cur_tok = Token(TT::Identifier, location, name);
+	return true;
 }
 
-bool Lexer::pop_identifier()
-{
-	//
-}
-
-bool Lexer::pop_bool_literal()
-{
-	//
-}
-
-bool Lexer::pop_real_literal()
-{
-	//
-}
-
-bool Lexer::pop_int_literal()
+bool Lexer::pop_numeric_literal()
 {
 	//
 }
@@ -111,35 +125,39 @@ bool Lexer::pop_operator()
 
 bool Lexer::has_more_input()
 {
-	if (m_buffer.size() == 0) {
-		if (!m_input.pop())
-			return false;
-		m_buffer.push_back(m_input.curr());
+	if (current_char() == 0)
+		return false;
+	else
+		return true;
+}
+
+Char Lexer::current_char()
+{
+	ensure_current_char();
+	return m_current_char;
+}
+
+Location Lexer::current_location()
+{
+	ensure_current_char();
+	return m_current_location;
+}
+
+void Lexer::ensure_current_char()
+{
+	if (m_current_char == 0)
+	{
+		if (m_input.pop())
+		{
+			m_current_char = m_input.curr();
+			m_current_location = m_input.location();
+		}
 	}
-
-	return true;
 }
 
-Char Lexer::read_char()
+void Lexer::consume_one_char()
 {
-	if (!has_more_input())
-		return 0;
-
-	Char result = m_buffer.front();
-	m_buffer.pop_front();
-
-	return result;
-}
-
-void Lexer::unread_string(String str)
-{
-	for (String::reverse_iterator it = str.rbegin(); it != str.rend(); it++)
-		unread_char(*it);
-}
-
-void Lexer::unread_char(Char c)
-{
-	m_buffer.push_front(c);
+	m_current_char = 0;
 }
 
 //----------------------------------------------------------------------

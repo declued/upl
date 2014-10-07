@@ -7,8 +7,6 @@
 #include <upl/input.hpp>
 #include <upl/tokens.hpp>
 
-#include <deque>
-
 //======================================================================
 
 namespace UPL {
@@ -34,26 +32,37 @@ private:
 	Error::Reporter & m_reporter;
 	Token m_cur_tok;
 	bool m_has_error;
-	std::deque<Char> m_buffer;
+	Char m_current_char;
+	Location m_current_location;
 
 	bool consume_whitespace();
 	bool consume_comment();
-	bool pop_keyword();
-	bool pop_identifier();
+	bool pop_name();
 	bool pop_bool_literal();
-	bool pop_real_literal();
-	bool pop_int_literal();
+	bool pop_numeric_literal();
 	bool pop_string_literal();
 	bool pop_separator();
 	bool pop_operator();
 
 	bool has_more_input();
-	Char read_char();
-	void unread_string(String str);
-	void unread_char(Char c);
+	Char current_char();
+	Location current_location();
+	void ensure_current_char();
+	void consume_one_char();
 
 	/* constants */
 	const Char COMMENT_START = '#';
+	const String FALSE_STR = L"false";
+	const String TRUE_STR = L"true";
+	static const int KEYWORD_COUNT = 6;
+	const std::pair<String, TT> KEYWORDS[KEYWORD_COUNT] = {
+		{L"def", TT::KeywordDef},
+		{L"var", TT::KeywordVar},
+		{L"bool", TT::KeywordBool},
+		{L"int", TT::KeywordInt},
+		{L"real", TT::KeywordReal},
+		{L"func", TT::KeywordFunc}
+	};
 };
 
 //======================================================================

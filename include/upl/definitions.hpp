@@ -11,7 +11,18 @@
 	action (/* 1,*/ Error)											\
 	action (/* 2,*/ EOI)											\
 	action (/* 3,*/ Whitespace)		/*   */							\
-	action (/* 4,*/ Comment)		/* # */
+	action (/* 4,*/ Comment)		/* # */							\
+	action (/* 5,*/ BoolLiteral)									\
+	action (/* 6,*/ IntLiteral)										\
+	action (/* 7,*/ RealLiteral)									\
+	action (/* 8,*/ StrLiteral)										\
+	action (/* 9,*/ Identifier)										\
+	action (/* 10,*/ KeywordDef)									\
+	action (/* 11,*/ KeywordVar)									\
+	action (/* 12,*/ KeywordBool)									\
+	action (/* 13,*/ KeywordInt)									\
+	action (/* 14,*/ KeywordReal)									\
+	action (/* 15,*/ KeywordFunc)
 //	.
 //	.
 //	.
