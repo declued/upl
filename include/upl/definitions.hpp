@@ -17,12 +17,21 @@
 	action (/* 7,*/ RealLiteral)									\
 	action (/* 8,*/ StrLiteral)										\
 	action (/* 9,*/ Identifier)										\
-	action (/* 10,*/ KeywordDef)									\
-	action (/* 11,*/ KeywordVar)									\
-	action (/* 12,*/ KeywordBool)									\
-	action (/* 13,*/ KeywordInt)									\
-	action (/* 14,*/ KeywordReal)									\
-	action (/* 15,*/ KeywordFunc)
+	action (/* 10,*/ OpenBracket)									\
+	action (/* 11,*/ CloseBracket)									\
+	action (/* 12,*/ OpenParen)										\
+	action (/* 13,*/ CloseParen)									\
+	action (/* 14,*/ Assignment)									\
+	action (/* 15,*/ StatementSep)									\
+	action (/* 16,*/ ArgumentSep)									\
+	action (/* 17,*/ ReturnsSep)									\
+	action (/* 18,*/ Operator)										\
+	action (/* 19,*/ KeywordDef)									\
+	action (/* 20,*/ KeywordVar)									\
+	action (/* 21,*/ KeywordBool)									\
+	action (/* 22,*/ KeywordInt)									\
+	action (/* 23,*/ KeywordReal)									\
+	action (/* 24,*/ KeywordFunc)
 //	.
 //	.
 //	.

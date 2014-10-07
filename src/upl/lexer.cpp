@@ -1,6 +1,7 @@
 //======================================================================
 
 #include <upl/lexer.hpp>
+#include <cstring>
 
 //======================================================================
 
@@ -26,8 +27,20 @@ bool Lexer::pop ()
 	while (consume_whitespace() || consume_comment());
 
 	if (pop_name() || pop_numeric_literal() | pop_string_literal() ||
-		pop_separator() || pop_operator())
+		pop_separator_or_operator())
 	{
+		token_popped = true;
+	}
+
+	if (!token_popped && has_more_input()) {
+		Location location = current_location();
+		Char c = current_char();
+		consume_one_char();
+
+		String value;
+		value += c;
+
+		m_cur_tok = Token(TT::Error, location, value);
 		token_popped = true;
 	}
 
@@ -271,14 +284,62 @@ bool Lexer::pop_string_literal()
 	return true;
 }
 
-bool Lexer::pop_separator()
+bool Lexer::pop_separator_or_operator()
 {
-	//
-}
+	TT token_type = TT::Empty;
+	Location location = current_location();
+	String uncooked;
 
-bool Lexer::pop_operator()
-{
-	//
+	/* detect single character separators */
+	switch (current_char()) {
+	case '{':
+		token_type = TT::OpenBracket;
+		break;
+	case '}':
+		token_type = TT::CloseBracket;
+		break;
+	case '(':
+		token_type = TT::OpenParen;
+		break;
+	case ')':
+		token_type = TT::CloseParen;
+		break;
+	case ',':
+		token_type = TT::ArgumentSep;
+		break;
+	case ';':
+		token_type = TT::StatementSep;
+		break;
+	}
+
+	if (token_type != TT::Empty) {
+		uncooked += current_char();
+		consume_one_char();
+
+		m_cur_tok = Token(token_type, location, uncooked);
+		return true;
+	}
+
+	/* detect multi character separators and operators */
+	while (strchr("?:|^&!=<>*/%~+", current_char()) != NULL) {
+		uncooked += current_char();
+		consume_one_char();
+	}
+
+	if (uncooked == L"=")
+		token_type = TT::Assignment;
+	else if (uncooked == L"->")
+		token_type = TT::ReturnsSep;
+	else
+		token_type = TT::Operator;
+
+	if (token_type != TT::Empty) {
+		m_cur_tok = Token(token_type, location, uncooked);
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 bool Lexer::has_more_input()

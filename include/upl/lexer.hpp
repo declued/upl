@@ -41,8 +41,7 @@ private:
 	bool pop_bool_literal();
 	bool pop_numeric_literal();
 	bool pop_string_literal();
-	bool pop_separator();
-	bool pop_operator();
+	bool pop_separator_or_operator();
 
 	bool has_more_input();
 	Char current_char();
