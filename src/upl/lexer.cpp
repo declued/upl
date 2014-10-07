@@ -197,21 +197,16 @@ bool Lexer::pop_numeric_literal()
 	if (state == DONE_INTEGER) {
 		Int value = stoll(number);
 		m_cur_tok = Token(TT::IntLiteral, location, number, value);
-
-		return true;
 	}
 	else if (state == DONE_REAL) {
 		Real value = stod(number);
 		m_cur_tok = Token(TT::RealLiteral, location, number, value);
-
-		return true;
 	}
 	else if (state == ERROR) {
 		m_cur_tok = Token(TT::Error, location, number);
-		return false;
 	}
 
-	return false;
+	return true;
 }
 
 bool Lexer::pop_string_literal()
