@@ -211,7 +211,64 @@ bool Lexer::pop_numeric_literal()
 
 bool Lexer::pop_string_literal()
 {
-	//
+	String uncooked;
+	String value;
+	Location location;
+	bool escape = false;
+	bool error = false;
+	bool done = false;
+
+	if (current_char() != '"')
+		return false;
+
+	location = current_location();
+	uncooked += current_char();
+	consume_one_char();
+
+	while (!done && !error) {
+		char c = current_char();
+		if (escape) {
+			if (c == 'n') {
+				value += '\n';
+			}
+			else if (c == 't') {
+				value += '\t';
+			}
+			else {
+				value += c;
+			}
+			uncooked += c;
+			consume_one_char();
+			escape = false;
+		}
+		else if (IsNewline(c) || c == 0) {
+			error = true;
+		}
+		else if (c == '"') {
+			uncooked += c;
+			consume_one_char();
+			done = true;
+		}
+		else if (c == '\\') {
+			uncooked += c;
+			consume_one_char();
+			escape = true;
+		}
+		else {
+			value += c;
+			uncooked += c;
+			consume_one_char();
+		}
+	}
+
+	if (error) {
+		m_cur_tok = Token(TT::Error, location, uncooked);
+	}
+	else {
+		m_cur_tok = Token(TT::StrLiteral, location, uncooked, value);
+	}
+
+	return true;
 }
 
 bool Lexer::pop_separator()
