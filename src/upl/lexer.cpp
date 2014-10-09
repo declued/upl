@@ -14,6 +14,8 @@ Lexer::Lexer (InputStream & input, Error::Reporter & reporter)
 	, m_reporter (reporter)
 	, m_cur_tok ()
 	, m_has_error (false)
+	, m_current_char (input.curr())
+	, m_current_location (input.location())
 {
 	pop ();
 }
