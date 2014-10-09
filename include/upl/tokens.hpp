@@ -36,6 +36,10 @@ TT StringToKeyword (String const & kw_str);
 bool TokenIsKeyword (TT token_type);
 bool StringIsKeyword (String const & kw_str);
 
+bool IsCommentStarter (Char c);
+bool IsTrueLiteral (String const & str);
+bool IsFalseLiteral (String const & str);
+
 //======================================================================
 
 class Token

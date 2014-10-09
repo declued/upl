@@ -65,7 +65,7 @@ bool Lexer::consume_whitespace()
 
 bool Lexer::consume_comment()
 {
-	if (current_char() != COMMENT_START)
+	if (!IsCommentStarter(current_char()))
 		return false;
 
 	while (has_more_input()) {
@@ -95,11 +95,11 @@ bool Lexer::pop_name()
 	}
 
 	/* check for bool literals */
-	if (name == FALSE_STR) {
+	if (IsFalseLiteral(name)) {
 		m_cur_tok = Token(TT::BoolLiteral, location, name, false);
 		return true;
 	}
-	else if (name == TRUE_STR) {
+	else if (IsTrueLiteral(name)) {
 		m_cur_tok = Token(TT::BoolLiteral, location, name, true);
 		return true;
 	}

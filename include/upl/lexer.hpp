@@ -48,11 +48,6 @@ private:
 	Location current_location();
 	void ensure_current_char();
 	void consume_one_char();
-
-	/* constants */
-	const Char COMMENT_START = '#';
-	const String FALSE_STR = L"false";
-	const String TRUE_STR = L"true";
 };
 
 //======================================================================

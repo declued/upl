@@ -44,6 +44,12 @@
 	action (KeywordFunc,	L"func")
 
 //----------------------------------------------------------------------
+
+#define UPL_PRIVATE__COMMENT_START_CHAR		'#'
+#define UPL_PRIVATE__LITERAL_FALSE_STR		L"false"
+#define UPL_PRIVATE__LITERAL_TRUE_STR		L"true"
+
+//----------------------------------------------------------------------
 //======================================================================
 
 namespace UPL {
