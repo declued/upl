@@ -1,0 +1,16 @@
+﻿# This is a comment.
+
+def x = 42;
+def Y = real(42);
+var Z = 3.1415926535;
+bool w;
+def Foo = func(int a, int b)->real {
+	def invalid = b == 0;
+	invalid ? 0 : real(a) / real(b);
+};
+var Bar = func(real a, real b)->bool {
+	a <= b;
+};
+def Baz = func()->int {
+	x;
+};
