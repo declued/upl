@@ -28,13 +28,6 @@ public:
 	bool pop ();
 
 private:
-	InputStream & m_input;
-	Error::Reporter & m_reporter;
-	Token m_cur_tok;
-	bool m_has_error;
-	Char m_current_char;
-	Location m_current_location;
-
 	bool consume_whitespace();
 	bool consume_comment();
 	bool pop_name();
@@ -48,6 +41,14 @@ private:
 	Location current_location();
 	void ensure_current_char();
 	void consume_one_char();
+
+private:
+	InputStream & m_input;
+	Error::Reporter & m_reporter;
+	Token m_cur_tok;
+	bool m_has_error;
+	Char m_current_char;
+	Location m_current_location;
 };
 
 //======================================================================
