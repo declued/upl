@@ -105,11 +105,12 @@ bool Lexer::pop_name()
 	}
 
 	/* check for keywords */
-	for (int i = 0; i < KEYWORD_COUNT; i++)
-		if (name == KEYWORDS[i].first) {
-			m_cur_tok = Token(KEYWORDS[i].second, location, name);
-			return true;
-		}
+	TT keyword_token = StringToKeyword(name);
+	if (TT::Error != keyword_token)
+	{
+		m_cur_tok = Token(keyword_token, location, name);
+		return true;
+	}
 
 	/* otherwise it is a simple identifier */
 	m_cur_tok = Token(TT::Identifier, location, name);

@@ -53,15 +53,6 @@ private:
 	const Char COMMENT_START = '#';
 	const String FALSE_STR = L"false";
 	const String TRUE_STR = L"true";
-	static const int KEYWORD_COUNT = 6;
-	const std::pair<String, TT> KEYWORDS[KEYWORD_COUNT] = {
-		{L"def", TT::KeywordDef},
-		{L"var", TT::KeywordVar},
-		{L"bool", TT::KeywordBool},
-		{L"int", TT::KeywordInt},
-		{L"real", TT::KeywordReal},
-		{L"func", TT::KeywordFunc}
-	};
 };
 
 //======================================================================

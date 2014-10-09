@@ -14,17 +14,27 @@ namespace UPL {
 
 #define TT_ENUM(e)		e,
 enum class TT { UPL_PRIVATE__TOKEN_TYPES(TT_ENUM) };
-#undef TT_ENUM
+#undef  TT_ENUM
 
 #define TT_COUNT(e)		+1
-static int const TTCount = UPL_PRIVATE__TOKEN_TYPES(TT_COUNT);
-#undef TT_COUNT
+int const TTCount = UPL_PRIVATE__TOKEN_TYPES(TT_COUNT);
+#undef  TT_COUNT
 
 //----------------------------------------------------------------------
+
+#define KEYWORD_COUNT(e, s)	+1
+int const KeywordCount = UPL_PRIVATE__KEYWORDS(KEYWORD_COUNT);
+#undef  KEYWORD_COUNT
+
 //----------------------------------------------------------------------
 //======================================================================
 
-char const * TokenType2String (TT token_type);
+char const * TokenTypeToString (TT token_type);
+
+Char const * KeywordToString (TT keyword_token_type);
+TT StringToKeyword (String const & kw_str);
+bool TokenIsKeyword (TT token_type);
+bool StringIsKeyword (String const & kw_str);
 
 //======================================================================
 
@@ -52,7 +62,7 @@ public:
 	bool isnt (TT tok_type) const {return m_type != tok_type;}
 
 	TT type () const {return m_type;}
-	char const * typeStr () const {return TokenType2String(type());}
+	char const * typeStr () const {return TokenTypeToString(type());}
 	Location const & location () const {return m_loc;}
 	String const & uncookedValue () const {return m_uncooked;}
 
@@ -61,6 +71,8 @@ public:
 	Real const & valueReal () const {return m_value.r;}
 	String const & valueString () const {return m_value.s;}
 
+	bool isKeyword () const {return TokenIsKeyword(type());}
+	
 private:
 	TT m_type;
 	Location m_loc;
