@@ -53,8 +53,12 @@ Char UTF8FileStream::readOne ()
 	for (int i = 0; i < dsb.first; ++i)
 		acc = (acc << 6) | readContinuationByte();
 
-	// acc should not be larger than 0x10FFFF, but even that won't fit in a wchar_t.
-	return Char(acc);
+	// Note: acc should not be larger than 0x10FFFF, but even that won't fit in a wchar_t. :-(
+
+	if (msc_BOM == acc)		// Ignore a Byte Order Mark
+		return readOne();
+	else
+		return Char(acc);
 }
 
 //----------------------------------------------------------------------

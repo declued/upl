@@ -80,6 +80,8 @@ private:
 class UTF8FileStream
 	: public InputStream
 {
+	static Char const msc_BOM = 0xFEFF;
+
 public:
 	UTF8FileStream (Path const & file_path, Error::Reporter & rep);
 	virtual ~UTF8FileStream ();
