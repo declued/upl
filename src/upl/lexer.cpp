@@ -26,6 +26,9 @@ bool Lexer::pop ()
 {
 	bool token_popped = false;
 
+	if (m_cur_tok.is(TT::EOI))
+		return false;
+
 	while (consume_whitespace() || consume_comment());
 
 	if (pop_name() || pop_numeric_literal() | pop_string_literal() ||
@@ -43,6 +46,11 @@ bool Lexer::pop ()
 		value += c;
 
 		m_cur_tok = Token(TT::Error, location, value);
+		token_popped = true;
+	}
+
+	if (!token_popped) {
+		m_cur_tok = Token(TT::EOI, current_location(), L"");
 		token_popped = true;
 	}
 
@@ -323,8 +331,10 @@ bool Lexer::pop_separator_or_operator()
 		return true;
 	}
 
+
 	/* detect multi character separators and operators */
-	while (strchr("?:|^&!=<>*/%~-+", current_char()) != NULL) {
+	while (has_more_input() &&
+		   strchr("?:|^&!=<>*/%~-+", current_char()) != NULL) {
 		uncooked += current_char();
 		consume_one_char();
 	}
@@ -347,7 +357,7 @@ bool Lexer::pop_separator_or_operator()
 
 bool Lexer::has_more_input()
 {
-	if (current_char() == 0)
+	if (m_input.eoi())
 		return false;
 	else
 		return true;
