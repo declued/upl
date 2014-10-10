@@ -324,7 +324,7 @@ bool Lexer::pop_separator_or_operator()
 	}
 
 	/* detect multi character separators and operators */
-	while (strchr("?:|^&!=<>*/%~+", current_char()) != NULL) {
+	while (strchr("?:|^&!=<>*/%~-+", current_char()) != NULL) {
 		uncooked += current_char();
 		consume_one_char();
 	}
@@ -333,7 +333,7 @@ bool Lexer::pop_separator_or_operator()
 		token_type = TT::Assignment;
 	else if (uncooked == L"->")
 		token_type = TT::ReturnsSep;
-	else
+	else if (uncooked.length() != 0)
 		token_type = TT::Operator;
 
 	if (token_type != TT::Empty) {
