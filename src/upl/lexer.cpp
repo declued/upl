@@ -35,7 +35,7 @@ bool Lexer::pop ()
 		token_popped = true;
 	}
 
-	if (!token_popped && !m_input.eoi()) {
+	if (!token_popped && (!m_input.eoi() || m_input.error())) {
 		Location location = m_input.location();
 		Char c = m_input.curr();
 		m_input.pop();
@@ -64,7 +64,7 @@ bool Lexer::consume_whitespace()
 {
 	bool consumed_input = false;
 
-	while (!m_input.eoi()) {
+	while (!m_input.eoi() && !m_input.error()) {
 		Char c = m_input.curr();
 		if (!IsWhitespace(c))
 			break;
@@ -83,7 +83,7 @@ bool Lexer::consume_comment()
 	if (!IsCommentStarter(m_input.curr()))
 		return false;
 
-	while (!m_input.eoi()) {
+	while (!m_input.eoi() && !m_input.error()) {
 		Char c = m_input.curr();
 		if (IsNewline(c))
 			break;
@@ -106,7 +106,8 @@ bool Lexer::pop_name()
 
 	/* save location and read the name */
 	location = m_input.location();
-	while (!m_input.eoi() && IsIdentContinuer(m_input.curr())) {
+	while (!m_input.eoi() && !m_input.error() &&
+		   IsIdentContinuer(m_input.curr())) {
 		name += m_input.curr();
 		m_input.pop();
 	}
@@ -158,7 +159,8 @@ bool Lexer::pop_numeric_literal()
 	location = m_input.location();
 
 	while (state != DONE_INTEGER && state != DONE_REAL && state != ERROR) {
-		char c = m_input.curr();
+		Char c = m_input.curr();
+
 		switch (state) {
 		case INTEGER_PART:
 			if (IsDigit(c)) {
@@ -174,6 +176,7 @@ bool Lexer::pop_numeric_literal()
 				state = DONE_INTEGER;
 			}
 			break;
+
 		case FRACTIONAL_PART_FIRST:
 			if (IsDigit(c)) {
 				number += c;
@@ -184,6 +187,7 @@ bool Lexer::pop_numeric_literal()
 				state = ERROR;
 			}
 			break;
+
 		case FRACTIONAL_PART_REST:
 			if (IsDigit(c)) {
 				number += c;
@@ -198,6 +202,7 @@ bool Lexer::pop_numeric_literal()
 				state = DONE_REAL;
 			}
 			break;
+
 		case EXPONENT_SIGN:
 			if (c == UPL_PRIVATE__POSITIVE_SIGN ||
 				c == UPL_PRIVATE__NEGATIVE_SIGN) {
@@ -206,6 +211,7 @@ bool Lexer::pop_numeric_literal()
 			}
 			state = EXPONENT_VALUE_FIRST;
 			break;
+
 		case EXPONENT_VALUE_FIRST:
 			if (IsDigit(c)) {
 				number += c;
@@ -216,6 +222,7 @@ bool Lexer::pop_numeric_literal()
 				state = ERROR;
 			}
 			break;
+
 		case EXPONENT_VALUE_REST:
 			if (IsDigit(c)) {
 				number += c;
@@ -262,15 +269,17 @@ bool Lexer::pop_string_literal()
 	m_input.pop();
 
 	while (!done && !error) {
-		char c = m_input.curr();
+		if (m_input.eoi() || m_input.error() || IsNewline(m_input.curr())) {
+			error = true;
+			break;
+		}
+
+		Char c = m_input.curr();
 		if (escape) {
 			value += EscapeCharacter(c);
 			uncooked += c;
 			m_input.pop();
 			escape = false;
-		}
-		else if (IsNewline(c) || c == 0) {
-			error = true;
 		}
 		else if (IsStringDelimiter(c)) {
 			uncooked += c;
@@ -312,18 +321,23 @@ bool Lexer::pop_separator_or_operator()
 	case UPL_PRIVATE__OPEN_BRACKET:
 		token_type = TT::OpenBracket;
 		break;
+
 	case UPL_PRIVATE__CLOSE_BRACKET:
 		token_type = TT::CloseBracket;
 		break;
+
 	case UPL_PRIVATE__OPEN_PAREN:
 		token_type = TT::OpenParen;
 		break;
+
 	case UPL_PRIVATE__CLOSE_PAREN:
 		token_type = TT::CloseParen;
 		break;
+
 	case UPL_PRIVATE__ARGUMENT_SEP:
 		token_type = TT::ArgumentSep;
 		break;
+
 	case UPL_PRIVATE__STATEMENT_SEP:
 		token_type = TT::StatementSep;
 		break;
@@ -338,7 +352,7 @@ bool Lexer::pop_separator_or_operator()
 	}
 
 	/* detect multi character separators and operators */
-	while (!m_input.eoi() &&
+	while (!m_input.eoi() && !m_input.error() &&
 		   strchr(UPL_PRIVATE__OPERATOR_CHAR_SET, m_input.curr()) != NULL) {
 		uncooked += m_input.curr();
 		m_input.pop();
