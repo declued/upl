@@ -55,6 +55,8 @@ bool Lexer::pop ()
 	return token_popped;
 }
 
+//----------------------------------------------------------------------
+
 bool Lexer::consume_whitespace()
 {
 	bool consumed_input = false;
@@ -71,6 +73,8 @@ bool Lexer::consume_whitespace()
 	return consumed_input;
 }
 
+//----------------------------------------------------------------------
+
 bool Lexer::consume_comment()
 {
 	if (!IsCommentStarter(m_input.curr()))
@@ -86,6 +90,8 @@ bool Lexer::consume_comment()
 
 	return true;
 }
+
+//----------------------------------------------------------------------
 
 bool Lexer::pop_name()
 {
@@ -124,6 +130,8 @@ bool Lexer::pop_name()
 	m_cur_tok = Token(TT::Identifier, location, name);
 	return true;
 }
+
+//----------------------------------------------------------------------
 
 bool Lexer::pop_numeric_literal()
 {
@@ -232,6 +240,8 @@ bool Lexer::pop_numeric_literal()
 	return true;
 }
 
+//----------------------------------------------------------------------
+
 bool Lexer::pop_string_literal()
 {
 	String uncooked;
@@ -285,6 +295,8 @@ bool Lexer::pop_string_literal()
 
 	return true;
 }
+
+//----------------------------------------------------------------------
 
 bool Lexer::pop_separator_or_operator()
 {
