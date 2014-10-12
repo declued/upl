@@ -52,6 +52,9 @@ bool Lexer::pop ()
 		token_popped = true;
 	}
 
+	if (m_cur_tok.is(TT::Error))
+		m_has_error = true;
+
 	return token_popped;
 }
 
