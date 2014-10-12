@@ -156,7 +156,7 @@ bool Lexer::pop_numeric_literal()
 				number += c;
 				consume_one_char();
 			}
-			else if (c == '.') {
+			else if (c == UPL_PRIVATE__FRACTIONAL_SEP) {
 				number += c;
 				consume_one_char();
 				state = FRACTIONAL_PART_FIRST;
@@ -180,7 +180,7 @@ bool Lexer::pop_numeric_literal()
 				number += c;
 				consume_one_char();
 			}
-			else if (c == 'e') {
+			else if (c == UPL_PRIVATE__EXPONENT_SEP) {
 				number += c;
 				consume_one_char();
 				state = EXPONENT_SIGN;
@@ -190,7 +190,8 @@ bool Lexer::pop_numeric_literal()
 			}
 			break;
 		case EXPONENT_SIGN:
-			if (c == '+' || c == '-') {
+			if (c == UPL_PRIVATE__POSITIVE_SIGN ||
+				c == UPL_PRIVATE__NEGATIVE_SIGN) {
 				number += c;
 				consume_one_char();
 			}
@@ -242,7 +243,7 @@ bool Lexer::pop_string_literal()
 	bool error = false;
 	bool done = false;
 
-	if (current_char() != '"')
+	if (!IsStringDelimiter(current_char()))
 		return false;
 
 	location = current_location();
@@ -252,15 +253,7 @@ bool Lexer::pop_string_literal()
 	while (!done && !error) {
 		char c = current_char();
 		if (escape) {
-			if (c == 'n') {
-				value += '\n';
-			}
-			else if (c == 't') {
-				value += '\t';
-			}
-			else {
-				value += c;
-			}
+			value += EscapeCharacter(c);
 			uncooked += c;
 			consume_one_char();
 			escape = false;
@@ -268,12 +261,12 @@ bool Lexer::pop_string_literal()
 		else if (IsNewline(c) || c == 0) {
 			error = true;
 		}
-		else if (c == '"') {
+		else if (IsStringDelimiter(c)) {
 			uncooked += c;
 			consume_one_char();
 			done = true;
 		}
-		else if (c == '\\') {
+		else if (IsStringEscapeCharacter(c)) {
 			uncooked += c;
 			consume_one_char();
 			escape = true;
@@ -303,22 +296,22 @@ bool Lexer::pop_separator_or_operator()
 
 	/* detect single character separators */
 	switch (current_char()) {
-	case '{':
+	case UPL_PRIVATE__OPEN_BRACKET:
 		token_type = TT::OpenBracket;
 		break;
-	case '}':
+	case UPL_PRIVATE__CLOSE_BRACKET:
 		token_type = TT::CloseBracket;
 		break;
-	case '(':
+	case UPL_PRIVATE__OPEN_PAREN:
 		token_type = TT::OpenParen;
 		break;
-	case ')':
+	case UPL_PRIVATE__CLOSE_PAREN:
 		token_type = TT::CloseParen;
 		break;
-	case ',':
+	case UPL_PRIVATE__ARGUMENT_SEP:
 		token_type = TT::ArgumentSep;
 		break;
-	case ';':
+	case UPL_PRIVATE__STATEMENT_SEP:
 		token_type = TT::StatementSep;
 		break;
 	}
@@ -331,17 +324,16 @@ bool Lexer::pop_separator_or_operator()
 		return true;
 	}
 
-
 	/* detect multi character separators and operators */
 	while (has_more_input() &&
-		   strchr("?:|^&!=<>*/%~-+", current_char()) != NULL) {
+		   strchr(UPL_PRIVATE__OPERATOR_CHAR_SET, current_char()) != NULL) {
 		uncooked += current_char();
 		consume_one_char();
 	}
 
-	if (uncooked == L"=")
+	if (uncooked == UPL_PRIVATE__ASSIGNMENT)
 		token_type = TT::Assignment;
-	else if (uncooked == L"->")
+	else if (uncooked == UPL_PRIVATE__RETURNS_SEP)
 		token_type = TT::ReturnsSep;
 	else if (uncooked.length() != 0)
 		token_type = TT::Operator;

@@ -45,9 +45,24 @@
 
 //----------------------------------------------------------------------
 
-#define UPL_PRIVATE__COMMENT_START_CHAR		'#'
-#define UPL_PRIVATE__LITERAL_FALSE_STR		L"false"
-#define UPL_PRIVATE__LITERAL_TRUE_STR		L"true"
+#define UPL_PRIVATE__COMMENT_START_CHAR			'#'
+#define UPL_PRIVATE__LITERAL_FALSE_STR			L"false"
+#define UPL_PRIVATE__LITERAL_TRUE_STR			L"true"
+#define UPL_PRIVATE__STRING_DELIMITER			'"'
+#define UPL_PRIVATE__STRING_ESCAPE_CHARACTER 	'\\'
+#define UPL_PRIVATE__OPEN_BRACKET				'{'
+#define UPL_PRIVATE__CLOSE_BRACKET				'}'
+#define UPL_PRIVATE__OPEN_PAREN					'('
+#define UPL_PRIVATE__CLOSE_PAREN				')'
+#define UPL_PRIVATE__ARGUMENT_SEP				','
+#define UPL_PRIVATE__STATEMENT_SEP				';'
+#define UPL_PRIVATE__OPERATOR_CHAR_SET			"?:|^&!=<>*/%~-+"
+#define UPL_PRIVATE__ASSIGNMENT					L"="
+#define UPL_PRIVATE__RETURNS_SEP				L"->"
+#define UPL_PRIVATE__FRACTIONAL_SEP				'.'
+#define UPL_PRIVATE__EXPONENT_SEP				'e'
+#define UPL_PRIVATE__POSITIVE_SIGN				'+'
+#define UPL_PRIVATE__NEGATIVE_SIGN				'-'
 
 //----------------------------------------------------------------------
 //======================================================================

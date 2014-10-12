@@ -42,7 +42,8 @@ Char const * KeywordToString (TT keyword_token_type)
 }
 
 //----------------------------------------------------------------------
-// TODO: This can be faster using a hashtable or even a sorted table of strings or something.
+// TODO: This can be faster using a hashtable or even a sorted table of
+// strings or something.
 TT StringToKeyword (String const & kw_str)
 {
 	for (int i = 0; i < KeywordCount; ++i)
@@ -84,6 +85,35 @@ bool IsTrueLiteral (String const & str)
 bool IsFalseLiteral (String const & str)
 {
 	return str == UPL_PRIVATE__LITERAL_FALSE_STR;
+}
+
+//----------------------------------------------------------------------
+
+bool IsStringDelimiter (Char c)
+{
+	return c == UPL_PRIVATE__STRING_DELIMITER;
+}
+
+//----------------------------------------------------------------------
+
+bool IsStringEscapeCharacter (Char c)
+{
+	return c == UPL_PRIVATE__STRING_ESCAPE_CHARACTER;
+}
+
+//----------------------------------------------------------------------
+
+Char EscapeCharacter (Char c)
+{
+	if (c == 'n') {
+		return '\n';
+	}
+	else if (c == 't') {
+		return '\t';
+	}
+	else {
+		return c;
+	}
 }
 
 //----------------------------------------------------------------------

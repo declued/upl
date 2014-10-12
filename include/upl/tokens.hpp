@@ -39,6 +39,9 @@ bool StringIsKeyword (String const & kw_str);
 bool IsCommentStarter (Char c);
 bool IsTrueLiteral (String const & str);
 bool IsFalseLiteral (String const & str);
+bool IsStringDelimiter (Char c);
+bool IsStringEscapeCharacter (Char c);
+Char EscapeCharacter (Char c);
 
 //======================================================================
 
