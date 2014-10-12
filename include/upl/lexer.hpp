@@ -36,19 +36,11 @@ private:
 	bool pop_string_literal();
 	bool pop_separator_or_operator();
 
-	bool has_more_input();
-	Char current_char();
-	Location current_location();
-	void ensure_current_char();
-	void consume_one_char();
-
 private:
 	InputStream & m_input;
 	Error::Reporter & m_reporter;
 	Token m_cur_tok;
 	bool m_has_error;
-	Char m_current_char;
-	Location m_current_location;
 };
 
 //======================================================================

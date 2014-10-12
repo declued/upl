@@ -14,8 +14,6 @@ Lexer::Lexer (InputStream & input, Error::Reporter & reporter)
 	, m_reporter (reporter)
 	, m_cur_tok ()
 	, m_has_error (false)
-	, m_current_char (input.curr())
-	, m_current_location (input.location())
 {
 	pop ();
 }
@@ -37,10 +35,10 @@ bool Lexer::pop ()
 		token_popped = true;
 	}
 
-	if (!token_popped && has_more_input()) {
-		Location location = current_location();
-		Char c = current_char();
-		consume_one_char();
+	if (!token_popped && !m_input.eoi()) {
+		Location location = m_input.location();
+		Char c = m_input.curr();
+		m_input.pop();
 
 		String value;
 		value += c;
@@ -50,7 +48,7 @@ bool Lexer::pop ()
 	}
 
 	if (!token_popped) {
-		m_cur_tok = Token(TT::EOI, current_location(), L"");
+		m_cur_tok = Token(TT::EOI, m_input.location(), L"");
 		token_popped = true;
 	}
 
@@ -61,12 +59,12 @@ bool Lexer::consume_whitespace()
 {
 	bool consumed_input = false;
 
-	while (has_more_input()) {
-		Char c = current_char();
+	while (!m_input.eoi()) {
+		Char c = m_input.curr();
 		if (!IsWhitespace(c))
 			break;
 
-		consume_one_char();
+		m_input.pop();
 		consumed_input = true;
 	}
 
@@ -75,15 +73,15 @@ bool Lexer::consume_whitespace()
 
 bool Lexer::consume_comment()
 {
-	if (!IsCommentStarter(current_char()))
+	if (!IsCommentStarter(m_input.curr()))
 		return false;
 
-	while (has_more_input()) {
-		Char c = current_char();
+	while (!m_input.eoi()) {
+		Char c = m_input.curr();
 		if (IsNewline(c))
 			break;
 
-		consume_one_char();
+		m_input.pop();
 	}
 
 	return true;
@@ -94,14 +92,14 @@ bool Lexer::pop_name()
 	String name;
 	Location location;
 
-	if (!IsIdentStarter(current_char()))
+	if (!IsIdentStarter(m_input.curr()))
 		return false;
 
 	/* save location and read the name */
-	location = current_location();
-	while (has_more_input() && IsIdentContinuer(current_char())) {
-		name += current_char();
-		consume_one_char();
+	location = m_input.location();
+	while (!m_input.eoi() && IsIdentContinuer(m_input.curr())) {
+		name += m_input.curr();
+		m_input.pop();
 	}
 
 	/* check for bool literals */
@@ -143,22 +141,22 @@ bool Lexer::pop_numeric_literal()
 		ERROR
 	} state = INTEGER_PART;
 
-	if (!IsDigit(current_char()))
+	if (!IsDigit(m_input.curr()))
 		return false;
 
-	location = current_location();
+	location = m_input.location();
 
 	while (state != DONE_INTEGER && state != DONE_REAL && state != ERROR) {
-		char c = current_char();
+		char c = m_input.curr();
 		switch (state) {
 		case INTEGER_PART:
 			if (IsDigit(c)) {
 				number += c;
-				consume_one_char();
+				m_input.pop();
 			}
 			else if (c == UPL_PRIVATE__FRACTIONAL_SEP) {
 				number += c;
-				consume_one_char();
+				m_input.pop();
 				state = FRACTIONAL_PART_FIRST;
 			}
 			else {
@@ -168,7 +166,7 @@ bool Lexer::pop_numeric_literal()
 		case FRACTIONAL_PART_FIRST:
 			if (IsDigit(c)) {
 				number += c;
-				consume_one_char();
+				m_input.pop();
 				state = FRACTIONAL_PART_REST;
 			}
 			else {
@@ -178,11 +176,11 @@ bool Lexer::pop_numeric_literal()
 		case FRACTIONAL_PART_REST:
 			if (IsDigit(c)) {
 				number += c;
-				consume_one_char();
+				m_input.pop();
 			}
 			else if (c == UPL_PRIVATE__EXPONENT_SEP) {
 				number += c;
-				consume_one_char();
+				m_input.pop();
 				state = EXPONENT_SIGN;
 			}
 			else {
@@ -193,14 +191,14 @@ bool Lexer::pop_numeric_literal()
 			if (c == UPL_PRIVATE__POSITIVE_SIGN ||
 				c == UPL_PRIVATE__NEGATIVE_SIGN) {
 				number += c;
-				consume_one_char();
+				m_input.pop();
 			}
 			state = EXPONENT_VALUE_FIRST;
 			break;
 		case EXPONENT_VALUE_FIRST:
 			if (IsDigit(c)) {
 				number += c;
-				consume_one_char();
+				m_input.pop();
 				state = EXPONENT_VALUE_REST;
 			}
 			else {
@@ -210,7 +208,7 @@ bool Lexer::pop_numeric_literal()
 		case EXPONENT_VALUE_REST:
 			if (IsDigit(c)) {
 				number += c;
-				consume_one_char();
+				m_input.pop();
 			}
 			else {
 				state = DONE_REAL;
@@ -243,19 +241,19 @@ bool Lexer::pop_string_literal()
 	bool error = false;
 	bool done = false;
 
-	if (!IsStringDelimiter(current_char()))
+	if (!IsStringDelimiter(m_input.curr()))
 		return false;
 
-	location = current_location();
-	uncooked += current_char();
-	consume_one_char();
+	location = m_input.location();
+	uncooked += m_input.curr();
+	m_input.pop();
 
 	while (!done && !error) {
-		char c = current_char();
+		char c = m_input.curr();
 		if (escape) {
 			value += EscapeCharacter(c);
 			uncooked += c;
-			consume_one_char();
+			m_input.pop();
 			escape = false;
 		}
 		else if (IsNewline(c) || c == 0) {
@@ -263,18 +261,18 @@ bool Lexer::pop_string_literal()
 		}
 		else if (IsStringDelimiter(c)) {
 			uncooked += c;
-			consume_one_char();
+			m_input.pop();
 			done = true;
 		}
 		else if (IsStringEscapeCharacter(c)) {
 			uncooked += c;
-			consume_one_char();
+			m_input.pop();
 			escape = true;
 		}
 		else {
 			value += c;
 			uncooked += c;
-			consume_one_char();
+			m_input.pop();
 		}
 	}
 
@@ -291,11 +289,11 @@ bool Lexer::pop_string_literal()
 bool Lexer::pop_separator_or_operator()
 {
 	TT token_type = TT::Empty;
-	Location location = current_location();
+	Location location = m_input.location();
 	String uncooked;
 
 	/* detect single character separators */
-	switch (current_char()) {
+	switch (m_input.curr()) {
 	case UPL_PRIVATE__OPEN_BRACKET:
 		token_type = TT::OpenBracket;
 		break;
@@ -317,18 +315,18 @@ bool Lexer::pop_separator_or_operator()
 	}
 
 	if (token_type != TT::Empty) {
-		uncooked += current_char();
-		consume_one_char();
+		uncooked += m_input.curr();
+		m_input.pop();
 
 		m_cur_tok = Token(token_type, location, uncooked);
 		return true;
 	}
 
 	/* detect multi character separators and operators */
-	while (has_more_input() &&
-		   strchr(UPL_PRIVATE__OPERATOR_CHAR_SET, current_char()) != NULL) {
-		uncooked += current_char();
-		consume_one_char();
+	while (!m_input.eoi() &&
+		   strchr(UPL_PRIVATE__OPERATOR_CHAR_SET, m_input.curr()) != NULL) {
+		uncooked += m_input.curr();
+		m_input.pop();
 	}
 
 	if (uncooked == UPL_PRIVATE__ASSIGNMENT)
@@ -345,43 +343,6 @@ bool Lexer::pop_separator_or_operator()
 	else {
 		return false;
 	}
-}
-
-bool Lexer::has_more_input()
-{
-	if (m_input.eoi())
-		return false;
-	else
-		return true;
-}
-
-Char Lexer::current_char()
-{
-	ensure_current_char();
-	return m_current_char;
-}
-
-Location Lexer::current_location()
-{
-	ensure_current_char();
-	return m_current_location;
-}
-
-void Lexer::ensure_current_char()
-{
-	if (m_current_char == 0)
-	{
-		if (m_input.pop())
-		{
-			m_current_char = m_input.curr();
-			m_current_location = m_input.location();
-		}
-	}
-}
-
-void Lexer::consume_one_char()
-{
-	m_current_char = 0;
 }
 
 //----------------------------------------------------------------------
