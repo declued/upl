@@ -20,9 +20,11 @@
 
 #if defined(_MSC_VER)
 	#define UPL_NOEXCEPT	throw()
+	#define UPL_UNREACHABLE	__assume(0)
 	#define vsnprintf		_vsnprintf
 #else
 	#define UPL_NOEXCEPT	nothrow
+	#define UPL_UNREACHABLE	__builtin_unreachable()
 #endif
 
 //======================================================================

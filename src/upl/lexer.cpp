@@ -232,6 +232,8 @@ bool Lexer::pop_numeric_literal()
 				state = DONE_REAL;
 			}
 			break;
+		default:
+			UPL_UNREACHABLE;
 		}
 	}
 

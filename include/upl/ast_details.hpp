@@ -73,8 +73,8 @@ public:
 	virtual ~ExprBase () {}
 	virtual Node * clone () const = 0;
 
-	virtual Type evalType () const = 0;
-	virtual Value eval () const = 0;
+	virtual Type * evalType () const = 0;
+	virtual Value * eval () const = 0;
 };
 
 //----------------------------------------------------------------------
