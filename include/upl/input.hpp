@@ -24,6 +24,12 @@ public:
 
 	virtual ~InputStream () {}
 
+	// Non-copyable and non-movable (for now.)
+	InputStream (InputStream const &) = delete;
+	InputStream (InputStream &&) = delete;
+	InputStream & operator = (InputStream const &) = delete;
+	InputStream & operator = (InputStream &&) = delete;
+
 	Error::Reporter const & reporter () const {return m_reporter;}
 	Error::Reporter & reporter () {return m_reporter;}
 	Location const & location () const {return m_cur_loc;}

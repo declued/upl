@@ -83,9 +83,9 @@ int UTF8FileStream::readStartByte ()
 	auto c = readByte();
 	if (eoi() || error())
 		return c;
-	if (!ValidStartByte(c))
+	if (!ValidStartByte(uint8_t(c)))
 		reporter().newInputWarning (location(), 2, L"Suspicious UTF-8 byte sequence: invalid start byte.");
-	while (!ValidStartByte(c) && !eoi() && !error())
+	while (!ValidStartByte(uint8_t(c)) && !eoi() && !error())
 		c = readByte();
 
 	return c;

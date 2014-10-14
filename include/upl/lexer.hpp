@@ -20,6 +20,12 @@ class Lexer
 public:
 	explicit Lexer (InputStream & input, Error::Reporter & reporter);
 
+	// Non-copyable and non-movable (for now.)
+	Lexer (Lexer const &) = delete;
+	Lexer (Lexer &&) = delete;
+	Lexer & operator = (Lexer const &) = delete;
+	Lexer & operator = (Lexer &&) = delete;
+
 	bool eoi () const {return m_cur_tok.is(TT::EOI);}
 	bool error () const {return m_has_error;}
 
