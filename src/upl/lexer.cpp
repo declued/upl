@@ -353,12 +353,12 @@ bool Lexer::pop_separator_or_operator()
 
 	/* detect multi character separators and operators */
 	while (!m_input.eoi() && !m_input.error() &&
-		   strchr(UPL_PRIVATE__OPERATOR_CHAR_SET, m_input.curr()) != NULL) {
+		   HasChar(UPL_PRIVATE__OPERATOR_CHAR_SET, m_input.curr())) {
 		uncooked += m_input.curr();
 		m_input.pop();
 	}
 
-	if (uncooked == UPL_PRIVATE__ASSIGNMENT)
+	if (uncooked.size() == 1 && uncooked.front() == UPL_PRIVATE__ASSIGNMENT)
 		token_type = TT::Assignment;
 	else if (uncooked == UPL_PRIVATE__RETURNS_SEP)
 		token_type = TT::ReturnsSep;

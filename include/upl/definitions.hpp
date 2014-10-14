@@ -56,8 +56,8 @@
 #define UPL_PRIVATE__CLOSE_PAREN				')'
 #define UPL_PRIVATE__ARGUMENT_SEP				','
 #define UPL_PRIVATE__STATEMENT_SEP				';'
-#define UPL_PRIVATE__OPERATOR_CHAR_SET			"?:|^&!=<>*/%~-+"
-#define UPL_PRIVATE__ASSIGNMENT					L"="
+#define UPL_PRIVATE__OPERATOR_CHAR_SET			L"?:|^&!=<>*/%~-+"
+#define UPL_PRIVATE__ASSIGNMENT					'='
 #define UPL_PRIVATE__RETURNS_SEP				L"->"
 #define UPL_PRIVATE__FRACTIONAL_SEP				'.'
 #define UPL_PRIVATE__EXPONENT_SEP				'e'

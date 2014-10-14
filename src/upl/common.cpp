@@ -216,6 +216,22 @@ template double FromString<double> (String const &);
 //template bool FromString<bool> (String const &);
 
 //----------------------------------------------------------------------
+//----------------------------------------------------------------------
+
+template <typename C>
+bool HasChar (C const * str, C c)
+{
+	for (auto s = str; *s; ++s)
+		if (*s == c)
+			return true;
+	return false;
+}
+
+//----------------------------------------------------------------------
+
+template bool HasChar<char> (char const * str, char c);
+template bool HasChar<wchar_t> (wchar_t const * str, wchar_t c);
+
 //======================================================================
 
 }	// namespace UPL
