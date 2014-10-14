@@ -8,17 +8,19 @@ include_directories ("include")
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin) 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib) 
 
-set (CMAKE_CONFIGURATION_TYPES "Debug;Release")
-set (CMAKE_BUILD_TYPE "Debug")
-
+# I hate this shit about CMAKE...
 if (CMAKE_COMPILER_IS_GNUCXX)
 	add_definitions (-std=c++11)
-endif (CMAKE_COMPILER_IS_GNUCXX)
+	add_definitions (-Wall)
+elseif (MSVC)
+	add_definitions (/W4)
+endif ()
 
 #-----------------------------------------------------------------------
 
 add_library ("upl" STATIC
 	"include/upl/ast.hpp"
+	"include/upl/ast_details.hpp"
 	"include/upl/code_gen.hpp"
 	"include/upl/common.hpp"
 	"include/upl/definitions.hpp"
@@ -28,9 +30,11 @@ add_library ("upl" STATIC
 	"include/upl/parser.hpp"
 	"include/upl/symbols.hpp"
 	"include/upl/tokens.hpp"
+	"include/upl/types.hpp"
 	"include/upl/vm.hpp"
 
 	"src/upl/ast.cpp"
+	"src/upl/ast_details.cpp"
 	"src/upl/code_gen.cpp"
 	"src/upl/common.cpp"
 	"src/upl/definitions.cpp"
@@ -40,6 +44,7 @@ add_library ("upl" STATIC
 	"src/upl/parser.cpp"
 	"src/upl/symbols.cpp"
 	"src/upl/tokens.cpp"
+	"src/upl/types.cpp"
 	"src/upl/vm.cpp"
 )
 
