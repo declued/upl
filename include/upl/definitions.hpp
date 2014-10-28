@@ -67,6 +67,22 @@
 //----------------------------------------------------------------------
 //======================================================================
 
+#define UPL_PRIVATE__POINTER_SIZE				8
+
+//----------------------------------------------------------------------
+
+#define UPL_PRIVATE__TYPES(action)									\
+/*	Enum, Name, IsScalar, IsComposite, IsCollection, IsCallable */	\
+	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
+	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
+	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
+	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
+	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
+	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
+	action (/*  ,*/ Basic, "Basic", true, false, false, false)
+
+//======================================================================
+
 namespace UPL {
 
 //======================================================================
