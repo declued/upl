@@ -71,15 +71,23 @@
 
 //----------------------------------------------------------------------
 
-#define UPL_PRIVATE__TYPES(action)									\
-/*	Enum, Name, IsScalar, IsComposite, IsCollection, IsCallable */	\
-	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
-	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
-	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
-	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
-	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
-	action (/*  ,*/ Basic, "Basic", true, false, false, false)		\
-	action (/*  ,*/ Basic, "Basic", true, false, false, false)
+#define UPL_PRIVATE__TYPE_TAGS(action)									\
+/*TagValue,Enum,Name,IsScalar,IsComposite,IsCollection,IsCallable */	\
+	action ( 0, INVALID , "(ERR)"   , true,false,false,false)			\
+	action ( 1, Nil     , "nil"     , true,false,false,false)			\
+	action ( 2, Bool    , "bool"    , true,false,false,false)			\
+	action ( 3, Byte    , "byte"    , true,false,false,false)			\
+	action ( 4, Char    , "char"    , true,false,false,false)			\
+	action ( 5, Int     , "int"     , true,false,false,false)			\
+	action ( 6, Real    , "real"    , true,false,false,false)			\
+	action ( 7, String  , "string"  , true,false,false,false)			\
+	action ( 8, Any     , "any"     , true,false,false,false)			\
+	action ( 9, Variant , "variant" , true,false,false,false)			\
+	action (10, Array   , "array"   ,false,false, true,false)			\
+	action (11, Map     , "map"     ,false,false, true,false)			\
+	action (12, Tuple   , "tuple"   ,false, true,false,false)			\
+	action (13, Package , "package" ,false, true,false,false)			\
+	action (14, Function, "function", true,false,false, true)
 
 //======================================================================
 

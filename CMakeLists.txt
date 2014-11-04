@@ -32,6 +32,7 @@ add_library ("upl" STATIC
 	"include/upl/tokens.hpp"
 	"include/upl/types.hpp"
 	"include/upl/vm.hpp"
+	"include/upl/details/stcode.hpp"
 
 	"src/upl/ast.cpp"
 	"src/upl/ast_details.cpp"
@@ -46,6 +47,7 @@ add_library ("upl" STATIC
 	"src/upl/tokens.cpp"
 	"src/upl/types.cpp"
 	"src/upl/vm.cpp"
+	"src/upl/details/stcode.cpp"
 )
 
 #-----------------------------------------------------------------------
