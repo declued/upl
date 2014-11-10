@@ -84,10 +84,11 @@
 	action ( 8, Any     , "any"     , true,false,false,false)			\
 	action ( 9, Variant , "variant" , true,false,false,false)			\
 	action (10, Array   , "array"   ,false,false, true,false)			\
-	action (11, Map     , "map"     ,false,false, true,false)			\
-	action (12, Tuple   , "tuple"   ,false, true,false,false)			\
-	action (13, Package , "package" ,false, true,false,false)			\
-	action (14, Function, "function", true,false,false, true)
+	action (11, Vector  , "vector"  ,false,false, true,false)			\
+	action (12, Map     , "map"     ,false,false, true,false)			\
+	action (13, Tuple   , "tuple"   ,false, true,false,false)			\
+	action (14, Package , "package" ,false, true,false,false)			\
+	action (15, Function, "function", true,false,false, true)
 
 //======================================================================
 
