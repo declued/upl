@@ -32,6 +32,9 @@
 #define UPL_STRINGIZE_IMPL(s)	#s
 #define UPL_STRINGIZE(s)		UPL_STRINGIZE_IMPL(s)
 
+#define UPL_MAX(a, b)			(((a) < (b)) ? (b) : (a))
+#define UPL_MIN(a, b)			(((a) < (b)) ? (a) : (b))
+
 //======================================================================
 
 namespace UPL {

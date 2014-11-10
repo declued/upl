@@ -1,5 +1,7 @@
 //======================================================================
 
+#include <upl/st_code.hpp>
+
 #include <upl/lexer.hpp>
 #include <upl/input.hpp>
 #include <upl/errors.hpp>
@@ -17,6 +19,7 @@ void ReportErrors (UPL::Error::Reporter const & err);
 void TestStringConversions ();
 void TestInputStream ();
 void TestLexer ();
+void TestSTCode ();
 
 //======================================================================
 
@@ -41,6 +44,12 @@ int main (int /*argc*/, char * /*argv*/[])
 	std::cout << "Testing the lexer" << std::endl;
 	std::cout << "-----------------" << std::endl;
 	TestLexer ();
+	std::cout << std::endl;
+
+	std::cout << "====================" << std::endl;
+	std::cout << "Testing the ST Codec" << std::endl;
+	std::cout << "--------------------" << std::endl;
+	TestSTCode ();
 	std::cout << std::endl;
 
 	return 0;
@@ -136,5 +145,23 @@ void TestLexer ()
 }
 
 //----------------------------------------------------------------------
+
+void TestSTCode ()
+{
+	using std::wcout;
+	using std::endl;
+
+	uint32_t test_ints [] = {2, 0, 7, 8, 15, 16, 255, 256, 4095, 4096, 24543563, 3000000000U};
+
+	for (auto ti : test_ints)
+	{
+		auto ci = UPL::Type::STCode::SerializeInt(ti);
+		wcout << ti << " -> (" << ci.size() << ") ";
+		//for (auto b : ci) wcout << " " << int(b);
+		for (auto b : ci) wcout << (L"0123456789ABCDEF")[int(b)];
+		wcout << endl;
+	}
+}
+
 //----------------------------------------------------------------------
 //======================================================================

@@ -70,25 +70,27 @@
 #define UPL_PRIVATE__POINTER_SIZE				8
 
 //----------------------------------------------------------------------
-
-#define UPL_PRIVATE__TYPE_TAGS(action)									\
-/*TagValue,Enum,Name,IsScalar,IsComposite,IsCollection,IsCallable */	\
-	action ( 0, INVALID , "(ERR)"   , true,false,false,false)			\
-	action ( 1, Nil     , "nil"     , true,false,false,false)			\
-	action ( 2, Bool    , "bool"    , true,false,false,false)			\
-	action ( 3, Byte    , "byte"    , true,false,false,false)			\
-	action ( 4, Char    , "char"    , true,false,false,false)			\
-	action ( 5, Int     , "int"     , true,false,false,false)			\
-	action ( 6, Real    , "real"    , true,false,false,false)			\
-	action ( 7, String  , "string"  , true,false,false,false)			\
-	action ( 8, Any     , "any"     , true,false,false,false)			\
-	action ( 9, Variant , "variant" , true,false,false,false)			\
-	action (10, Array   , "array"   ,false,false, true,false)			\
-	action (11, Vector  , "vector"  ,false,false, true,false)			\
-	action (12, Map     , "map"     ,false,false, true,false)			\
-	action (13, Tuple   , "tuple"   ,false, true,false,false)			\
-	action (14, Package , "package" ,false, true,false,false)			\
-	action (15, Function, "function", true,false,false, true)
+//
+// KEEP THE VALUE FIELDS SEQUENTIAL, COMPACT, AND STABLE!!!
+//
+#define UPL_PRIVATE__TYPE_TAGS(action)											\
+/*TagValue,Enum,Name,IsBasic,IsScalar,IsComposite,IsCollection,IsCallable */	\
+	action ( 0, INVALID , "(ERR)"   ,false,false,false,false,false)				\
+	action ( 1, Nil     , "nil"     , true, true,false,false,false)				\
+	action ( 2, Bool    , "bool"    , true, true,false,false,false)				\
+	action ( 3, Byte    , "byte"    , true, true,false,false,false)				\
+	action ( 4, Char    , "char"    , true, true,false,false,false)				\
+	action ( 5, Int     , "int"     , true, true,false,false,false)				\
+	action ( 6, Real    , "real"    , true, true,false,false,false)				\
+	action ( 7, String  , "string"  , true, true,false, true,false)				\
+	action ( 8, Any     , "any"     , true, true,false,false,false)				\
+	action ( 9, Variant , "variant" ,false, true,false,false,false)				\
+	action (10, Array   , "array"   ,false,false,false, true,false)				\
+	action (11, Vector  , "vector"  ,false,false,false, true,false)				\
+	action (12, Map     , "map"     ,false,false,false, true,false)				\
+	action (13, Tuple   , "tuple"   ,false,false, true,false,false)				\
+	action (14, Package , "package" ,false,false, true,false,false)				\
+	action (15, Function, "function",false, true,false,false, true)
 
 //======================================================================
 
