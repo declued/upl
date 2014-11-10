@@ -28,11 +28,11 @@ add_library ("upl" STATIC
 	"include/upl/input.hpp"
 	"include/upl/lexer.hpp"
 	"include/upl/parser.hpp"
+	"include/upl/st_code.hpp"
 	"include/upl/symbols.hpp"
 	"include/upl/tokens.hpp"
 	"include/upl/types.hpp"
 	"include/upl/vm.hpp"
-	"include/upl/details/stcode.hpp"
 
 	"src/upl/ast.cpp"
 	"src/upl/ast_details.cpp"
@@ -43,11 +43,11 @@ add_library ("upl" STATIC
 	"src/upl/input.cpp"
 	"src/upl/lexer.cpp"
 	"src/upl/parser.cpp"
+	"src/upl/st_code.cpp"
 	"src/upl/symbols.cpp"
 	"src/upl/tokens.cpp"
 	"src/upl/types.cpp"
 	"src/upl/vm.cpp"
-	"src/upl/details/stcode.cpp"
 )
 
 #-----------------------------------------------------------------------
