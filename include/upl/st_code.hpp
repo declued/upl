@@ -5,6 +5,7 @@
 #include <upl/common.hpp>
 #include <upl/definitions.hpp>
 
+#include <cassert>
 #include <set>
 
 //======================================================================
@@ -64,27 +65,68 @@ public:
 	static uint8_t const msc_ConstnessBit = (1 << 7);
 
 public:
-	inline static uint8_t SerializeTag (Tag tag, bool is_const);
-	inline static Tag GetTag (uint8_t serialized_tag);
-	inline static bool IsValid (uint8_t serialized_tag);
-	inline static bool IsConst (uint8_t serialized_tag);
+	static inline uint8_t SerializeTag (Tag tag, bool is_const);
+	static inline Tag GetTag (uint8_t serialized_tag);
+	static inline bool IsValid (uint8_t serialized_tag);
+	static inline bool IsConst (uint8_t serialized_tag);
 
-	inline static STIR SerializeInt (uint32_t v);
+	static inline STIR SerializeInt (uint32_t v);
 
-	inline static STIR MakeBasic (bool is_const, Tag tag);
-	inline static STIR MakeVariant (bool is_const, std::set<ID> const & allowed_types);
-	inline static STIR MakeArray (bool is_const, Size size, ID type);
-	inline static STIR MakeVector (bool is_const, ID type);
-	inline static STIR MakeMap (bool is_const, ID key_type, ID value_type);
-	inline static STIR MakeTuple (bool is_const, std::vector<ID> const & field_types);
-	inline static STIR MakePackage (bool is_const, std::vector<ID> const & field_types);
-	inline static STIR MakeFuction (bool is_const, ID return_type, std::vector<ID> const & param_types);
+	static inline STIR MakeBasic (bool is_const, Tag tag);
+	static inline STIR MakeVariant (bool is_const, std::set<ID> const & allowed_types);
+	static inline STIR MakeArray (bool is_const, Size size, ID type);
+	static inline STIR MakeVector (bool is_const, ID type);
+	static inline STIR MakeMap (bool is_const, ID key_type, ID value_type);
+	static inline STIR MakeTuple (bool is_const, std::vector<ID> const & field_types);
+	static inline STIR MakePackage (bool is_const, std::vector<ID> const & field_types);
+	static inline STIR MakeFuction (bool is_const, ID return_type, std::vector<ID> const & param_types);
+
+	static inline STIR MakeNil () {return MakeBasic(false, Tag::Nil);}
+	static inline STIR MakeBool (bool is_const) {return MakeBasic(is_const, Tag::Bool);}
+	static inline STIR MakeByte (bool is_const) {return MakeBasic(is_const, Tag::Byte);}
+	static inline STIR MakeChar (bool is_const) {return MakeBasic(is_const, Tag::Char);}
+	static inline STIR MakeInt (bool is_const) {return MakeBasic(is_const, Tag::Int);}
+	static inline STIR MakeReal (bool is_const) {return MakeBasic(is_const, Tag::Real);}
+	static inline STIR MakeString (bool is_const) {return MakeBasic(is_const, Tag::String);}
+	static inline STIR MakeAny (bool is_const) {return MakeBasic(is_const, Tag::Any);}
+
+	static inline int PackedSize (STIR const & st_ir);	// in bytes, rounded up
+	static inline int Pack (uint8_t * out_buf, int buf_size, STIR const & st_ir);	// Returns the size
+	static inline STIR Unpack (uint8_t const * buf, int buf_size);
 
 private:
-	inline static uint8_t Qrtt (uint32_t v, int quartet);	// Zero is the low-order 4 bits
+	static inline uint8_t Qrtt (uint32_t v, int quartet);	// Zero is the low-order 4 bits
 };
 
 //----------------------------------------------------------------------
+//======================================================================
+
+class STContainer
+{
+private:
+	union Entry
+	{
+		struct {
+			uint32_t is_data : 1;
+			uint32_t st : 31;
+		} data;
+
+		struct {
+			uint32_t is_data : 1;
+			uint32_t index;
+		} ptr;
+
+		uint32_t raw;
+	};
+
+public:
+
+private:
+	std::vector<Entry> m_types;
+	std::basic_string<uint8_t> m_stash;
+
+};
+
 //======================================================================
 
 	}	// namespace Types
@@ -253,6 +295,31 @@ inline STIR STCode::MakeFuction (bool is_const, ID return_type, std::vector<ID> 
 		ret += SerializeInt (id);
 
 	return ret;
+}
+
+//----------------------------------------------------------------------
+
+inline int STCode::PackedSize (STIR const & st_ir)
+{
+	assert (st_ir.size() > 0);
+
+	return 1 + int(st_ir.size()) / 2;
+}
+
+//----------------------------------------------------------------------
+
+inline int STCode::Pack (uint8_t * out_buf, int buf_size, STIR const & st_ir)
+{
+	auto s = PackedSize(st_ir);
+	
+	assert (s <= buf_size);
+	assert (st_ir[st_ir.size()] == 0);	// Assume there's a NUL at the end of st_ir; this is BAD.
+
+	out_buf[0] = st_ir[0];
+	for (int i = 1, j = 1, n = int(st_ir.size()); j < n; ++i, j += 2)
+		out_buf[i] = ((st_ir[j] & 0xF) << 4) | (st_ir[j + 1] & 0xF);
+
+	return s;
 }
 
 //----------------------------------------------------------------------
