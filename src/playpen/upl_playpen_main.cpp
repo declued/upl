@@ -150,6 +150,8 @@ void TestSTCode ()
 {
 	using std::wcout;
 	using std::endl;
+	using ST = UPL::Type::STCode;
+	using UPL::Type::Tag;
 
 	uint32_t test_ints [] = {2, 0, 7, 8, 15, 16, 255, 256, 4095, 4096, 24543563, 3000000000U};
 
@@ -160,6 +162,51 @@ void TestSTCode ()
 		//for (auto b : ci) wcout << " " << int(b);
 		for (auto b : ci) wcout << (L"0123456789ABCDEF")[int(b)];
 		wcout << endl;
+	}
+
+	wcout << endl;
+
+	UPL::Type::Registry reg;
+
+	auto ir0 = ST::MakeVariant(false, {reg.byTag(Tag::Int), reg.byTag(Tag::Nil), reg.byTag(Tag::String), reg.byTag(Tag::Any)});
+	auto p0 = ST::Pack(ir0);
+	auto id0 = reg.createType(p0);
+
+	auto ir1 = ST::MakeFuction(false, id0, {id0, id0, id0, reg.byTag(Tag::Bool)});
+	auto p1 = ST::Pack(ir1);
+	auto id1 = reg.createType(p1);
+
+	auto ir2 = ST::MakeMap(false, id1, id0);
+	auto p2 = ST::Pack(ir2);
+	auto id2 = reg.createType(p2);
+
+	auto ir3 = ST::MakeArray(true, 2000000000, id1);
+	auto p3 = ST::Pack(ir3);
+	auto id3 = reg.createType(p3);
+
+	auto ir4 = ST::MakeMap(false, id1, id0);
+	auto p4 = ST::Pack(ir4);
+	auto id4 = reg.createType(p4);
+	assert (id4 == id2);
+
+	auto ir5 = ST::MakeArray(true, 2000000000, id1);
+	auto p5 = ST::Pack(ir5);
+	auto id5 = reg.createType(p5);
+	assert (id5 == id3);
+
+	UPL::Type::STIR ir [] = {ir0, ir1, ir2, ir3, ir4, ir5};
+	UPL::Type::PackedST p [] = {p0, p1, p2, p3, p4, p5};
+	UPL::Type::ID id [] = {id0, id1, id2, id3, id4, id5};
+
+	for (int i = 0; i < 6; ++i)
+	{
+		wcout << "(" << ir[i].size() << ")";
+		for (auto b : ir[i]) wcout << std::hex << b;
+		wcout << " , ";
+		wcout << "(" << p[i].size() << ")";
+		for (auto b : p[i]) wcout << std::hex << b;
+		wcout << " , ";
+		wcout << std::dec << id[i] << endl;
 	}
 }
 

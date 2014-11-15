@@ -22,6 +22,8 @@ namespace UPL {
 typedef uint32_t ID;
 typedef uint32_t Size;
 
+ID const InvalidID = 0;
+
 //----------------------------------------------------------------------
 
 #define TAG_ENUM(v,e,s,b0,b1,b2,b3,b4)			e = v,
@@ -63,8 +65,9 @@ typedef std::basic_string<uint8_t> PackedST;
 class STCode
 {
 public:
-	static uint8_t const msc_ConstnessBit = (1 << 7);
-	static uint8_t const msc_OddLengthBit = (1 << 6);
+	static uint8_t const msc_StashedEntryBit = (1 << 7);
+	static uint8_t const msc_ConstnessBit = (1 << 6);
+	static uint8_t const msc_OddLengthBit = (1 << 5);
 
 public:
 	// Being "odd length" means that the least signigicant 4 bits of the last
@@ -78,6 +81,7 @@ public:
 
 	static inline STIR SerializeInt (uint32_t v);
 
+	static inline STIR MakeInvalid ();
 	static inline STIR MakeBasic (bool is_const, Tag tag);
 	static inline STIR MakeVariant (bool is_const, std::set<ID> const & allowed_types);
 	static inline STIR MakeArray (bool is_const, Size size, ID type);
@@ -97,10 +101,12 @@ public:
 	static inline STIR MakeAny (bool is_const) {return MakeBasic(is_const, Tag::Any);}
 
 	static inline int PackedSize (STIR const & st_ir);	// in bytes, rounded up
-	static inline int STCode::UnpackedSize (PackedST const & packed_st);
+	static inline int UnpackedSize (PackedST const & packed_st);
 
 	static inline PackedST Pack (STIR const & st_ir);
 	static inline STIR Unpack (PackedST const & packed_st);
+
+	static inline bool IsValid (PackedST const & packed_st);
 
 private:
 	static inline uint8_t Qrtt (uint32_t v, int quartet);	// Zero is the low-order 4 bits
@@ -112,19 +118,37 @@ private:
 class Registry
 {
 private:
-	typedef uint32_t Entry;
+	//union Entry { uint32_t raw; uint8_t bytes [4]; };
+	//typedef uint32_t Entry;
+	struct Entry { uint8_t bytes [4]; };
+	typedef std::unordered_map<PackedST, ID> TypeLookup;
 
 public:
 	Registry ();
 	~Registry ();
 
+	ID createType (PackedST const & packed_st);
+	ID lookupType (PackedST const & packed_st) const;
+	ID byTag (Tag tag) const;
+
+	inline Tag tag (ID id) const;
+	inline bool isConst (ID id) const;
 
 private:
+	inline bool isInline (ID id) const;
+	inline uint32_t inlineData (ID id) const;
+	inline uint32_t stashedIndex (ID id) const;
+	inline void setInlineEntry (ID id, bool is_inline);
+	inline void setStashIndex (ID id, uint32_t stash_index);
+	uint32_t stashCurPos () const {return uint32_t(m_stash.size());}
 
 private:
 	std::vector<Entry> m_types;
 	std::basic_string<uint8_t> m_stash;
+	TypeLookup m_lookup;
 
+private:
+	static_assert (sizeof(Entry) == 4, "Entry was expected to be 4 bytes long.");
 };
 
 //======================================================================
@@ -210,6 +234,13 @@ inline STIR STCode::SerializeInt (uint32_t v)
 		return STIR({uint8_t(7+7), Qrtt(v,6), Qrtt(v,5), Qrtt(v,4), Qrtt(v,3), Qrtt(v,2), Qrtt(v,1), Qrtt(v,0)});
 	else
 		return STIR({uint8_t(7+8), Qrtt(v,7), Qrtt(v,6), Qrtt(v,5), Qrtt(v,4), Qrtt(v,3), Qrtt(v,2), Qrtt(v,1), Qrtt(v,0)});
+}
+
+//----------------------------------------------------------------------
+
+inline STIR STCode::MakeInvalid ()
+{
+	return STIR({SerializeTag (Tag::INVALID, false, false)});
 }
 
 //----------------------------------------------------------------------
@@ -313,7 +344,7 @@ inline STIR STCode::MakeFuction (bool is_const, ID return_type, std::vector<ID> 
 {
 	STIR ret;
 
-	ret += SerializeTag (Tag::Tuple, is_const, false);
+	ret += SerializeTag (Tag::Function, is_const, false);
 	ret += SerializeInt (return_type);
 	ret += SerializeInt (uint32_t(param_types.size()));
 	for (auto id : param_types)
@@ -383,11 +414,87 @@ inline STIR STCode::Unpack (PackedST const & packed_st)
 }
 
 //----------------------------------------------------------------------
+
+inline bool STCode::IsValid (PackedST const & packed_st)
+{
+	return packed_st.size() > 0 && IsValid(packed_st[0]);
+}
+
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------
 
 inline uint8_t STCode::Qrtt (uint32_t v, int quartet)
 {
 	return (v >> (4 * quartet)) & 0x0F;
+}
+
+//======================================================================
+
+inline Tag Registry::tag (ID id) const
+{
+	if (id >= m_types.size())
+		return Tag::INVALID;
+	else
+		if (isInline(id))
+			return STCode::GetTag(m_types[id].bytes[0]);
+		else
+			return STCode::GetTag(m_stash[stashedIndex(id)]);
+}
+
+//----------------------------------------------------------------------
+
+inline bool Registry::isConst (ID id) const
+{
+	if (id >= m_types.size())
+		return false;
+	else
+		if (isInline(id))
+			return STCode::IsConst(m_types[id].bytes[0]);
+		else
+			return STCode::IsConst(m_stash[stashedIndex(id)]);
+}
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+
+inline bool Registry::isInline (ID id) const
+{
+	return 0 == (m_types[id].bytes[0] & STCode::msc_StashedEntryBit);
+}
+
+//----------------------------------------------------------------------
+
+inline uint32_t Registry::stashedIndex (ID id) const
+{
+	assert(!isInline(id));
+	auto b = m_types[id];
+	return ((b.bytes[0] & 0x7F) << 24) | (b.bytes[1] << 16) | (b.bytes[2] << 8) | b.bytes[3];
+}
+
+//----------------------------------------------------------------------
+
+inline void Registry::setInlineEntry (ID id, bool is_inline)
+{
+	if (!is_inline)
+		m_types[id].bytes[0] |= STCode::msc_StashedEntryBit;
+	else
+	{
+		assert (0 == (m_types[id].bytes[0] & STCode::msc_StashedEntryBit));
+	}
+}
+
+//----------------------------------------------------------------------
+
+inline void Registry::setStashIndex (ID id, uint32_t stash_index)
+{
+	assert (stash_index < 0x80000000U);	// Must keep the msb free.
+	m_types[id].bytes[0] = (stash_index >> 24) & 0x7F;
+	m_types[id].bytes[1] = (stash_index >> 16) & 0xFF;
+	m_types[id].bytes[2] = (stash_index >>  8) & 0xFF;
+	m_types[id].bytes[3] = stash_index & 0xFF;
+	setInlineEntry (id, false);
+	assert (!isInline(id));
+	assert (stashedIndex(id) == stash_index);
 }
 
 //======================================================================
