@@ -39,14 +39,14 @@ Registry::Registry ()
 
 	m_types.push_back ({}); m_types.back().bytes[3] = m_types.back().bytes[2] = m_types.back().bytes[1] = m_types.back().bytes[0] = 0;
 
-	auto t1 = createType(STCode::Pack(STCode::MakeNil()));						assert (1 == t1);
-	auto t2 = createType(STCode::Pack(STCode::MakeBool(false)));				assert (2 == t2);
-	auto t3 = createType(STCode::Pack(STCode::MakeByte(false)));				assert (3 == t3);
-	auto t4 = createType(STCode::Pack(STCode::MakeChar(false)));				assert (4 == t4);
-	auto t5 = createType(STCode::Pack(STCode::MakeInt(false)));					assert (5 == t5);
-	auto t6 = createType(STCode::Pack(STCode::MakeReal(false)));				assert (6 == t6);
-	auto t7 = createType(STCode::Pack(STCode::MakeString(false)));				assert (7 == t7);
-	auto t8 = createType(STCode::Pack(STCode::MakeAny(false)));					assert (8 == t8);
+	auto t1 = createType(STCode::Pack(STCode::MakeNil()));			assert (1 == t1);
+	auto t2 = createType(STCode::Pack(STCode::MakeBool(false)));	assert (2 == t2);
+	auto t3 = createType(STCode::Pack(STCode::MakeByte(false)));	assert (3 == t3);
+	auto t4 = createType(STCode::Pack(STCode::MakeChar(false)));	assert (4 == t4);
+	auto t5 = createType(STCode::Pack(STCode::MakeInt(false)));		assert (5 == t5);
+	auto t6 = createType(STCode::Pack(STCode::MakeReal(false)));	assert (6 == t6);
+	auto t7 = createType(STCode::Pack(STCode::MakeString(false)));	assert (7 == t7);
+	auto t8 = createType(STCode::Pack(STCode::MakeAny(false)));		assert (8 == t8);
 }
 
 //----------------------------------------------------------------------
@@ -111,6 +111,13 @@ ID Registry::byTag (Tag tag) const
 		return ID(i);
 	else
 		return InvalidID;
+}
+
+//----------------------------------------------------------------------
+
+UnpackedType Registry::unpack (ID id) const
+{
+	return UnpackedType();
 }
 
 //======================================================================

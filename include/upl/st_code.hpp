@@ -7,6 +7,7 @@
 
 #include <set>
 #include <unordered_map>
+#include <utility>
 
 //======================================================================
 
@@ -54,6 +55,25 @@ struct TagInfo_t
 TagInfo_t TagInfo (Tag tag);
 inline uint8_t TagToInt (Tag tag) {return int(tag);}
 inline Tag IntToTag (uint8_t i) {return Tag(i);}
+
+//======================================================================
+
+struct UnpackedType
+{
+	Tag tag = Tag::INVALID;
+	ID type1 = InvalidID;
+	ID type2 = InvalidID;
+	Size size = 0;
+	std::vector<ID> type_list;
+	bool is_const = false;
+
+	UnpackedType () {}
+	explicit UnpackedType (Tag tag_) : tag (tag_) {}
+	UnpackedType (Tag tag_, ID type1_) : tag (tag_), type1 (type1_) {}
+	UnpackedType (Tag tag_, ID type1_, ID type2_, Size size_) : tag (tag_), type1 (type1_), type2 (type2_), size (size_) {}
+	UnpackedType (Tag tag_, std::vector<ID> type_list_) : tag (tag_), type_list (std::move(type_list_)) {}
+	UnpackedType (Tag tag_, ID type1_, std::vector<ID> type_list_) : tag (tag_), type1 (type1_), type_list (std::move(type_list_)) {}
+};
 
 //======================================================================
 
@@ -134,13 +154,16 @@ public:
 	inline Tag tag (ID id) const;
 	inline bool isConst (ID id) const;
 
+	UnpackedType unpack (ID id) const;
+
 private:
+	uint32_t stashCurPos() const { return uint32_t(m_stash.size()); }
 	inline bool isInline (ID id) const;
-	inline uint32_t inlineData (ID id) const;
 	inline uint32_t stashedIndex (ID id) const;
 	inline void setInlineEntry (ID id, bool is_inline);
 	inline void setStashIndex (ID id, uint32_t stash_index);
-	uint32_t stashCurPos () const {return uint32_t(m_stash.size());}
+	inline uint8_t getByte (ID id, int b) const;
+	inline uint8_t getQuartet (ID id, int q) const;	// Starting from _after_ the first byte (the tag byte.)
 
 private:
 	std::vector<Entry> m_types;
@@ -435,10 +458,7 @@ inline Tag Registry::tag (ID id) const
 	if (id >= m_types.size())
 		return Tag::INVALID;
 	else
-		if (isInline(id))
-			return STCode::GetTag(m_types[id].bytes[0]);
-		else
-			return STCode::GetTag(m_stash[stashedIndex(id)]);
+		return STCode::GetTag(getByte(id, 0));
 }
 
 //----------------------------------------------------------------------
@@ -448,10 +468,7 @@ inline bool Registry::isConst (ID id) const
 	if (id >= m_types.size())
 		return false;
 	else
-		if (isInline(id))
-			return STCode::IsConst(m_types[id].bytes[0]);
-		else
-			return STCode::IsConst(m_stash[stashedIndex(id)]);
+		return STCode::IsConst(getByte(id, 0));
 }
 
 //----------------------------------------------------------------------
@@ -497,6 +514,22 @@ inline void Registry::setStashIndex (ID id, uint32_t stash_index)
 	assert (stashedIndex(id) == stash_index);
 }
 
+//----------------------------------------------------------------------
+
+inline uint8_t Registry::getByte (ID id, int b) const
+{
+	return isInline(id) ? m_types[id].bytes[b] : m_stash[stashedIndex(id) + b];
+}
+
+//----------------------------------------------------------------------
+
+inline uint8_t Registry::getQuartet (ID id, int q) const
+{
+	auto b = getByte(id, 1 + q / 2);
+	return 0xF & ((q & 1) ? b : (b >> 4));
+}
+
+//----------------------------------------------------------------------
 //======================================================================
 
 	}	// namespace Types
