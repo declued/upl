@@ -30,7 +30,7 @@ TagInfo_t TagInfo (Tag tag)
 
 //======================================================================
 
-Registry::Registry ()
+STContainer::STContainer ()
 	: m_types ()
 	, m_stash ()
 	, m_lookup ()
@@ -51,13 +51,13 @@ Registry::Registry ()
 
 //----------------------------------------------------------------------
 
-Registry::~Registry ()
+STContainer::~STContainer ()
 {
 }
 
 //----------------------------------------------------------------------
 
-ID Registry::createType (PackedST const & packed_st)
+ID STContainer::createType (PackedST const & packed_st)
 {
 	if (!STCode::IsValid(packed_st))
 		return InvalidID;
@@ -93,7 +93,26 @@ ID Registry::createType (PackedST const & packed_st)
 
 //----------------------------------------------------------------------
 
-ID Registry::lookupType (PackedST const & packed_st) const
+ID STContainer::createType (Unpacked const & unpacked)
+{
+}
+
+//----------------------------------------------------------------------
+bool STContainer::createName (String const & new_name, ID existing_type)
+{
+	if (!isValid(existing_type))
+		return false;
+	if (m_names.find(new_name) != m_names.end())
+		return false;
+
+	m_names[new_name] = existing_type;
+
+	return true;
+}
+
+//----------------------------------------------------------------------
+
+ID STContainer::lookupType (PackedST const & packed_st) const
 {
 	auto i = m_lookup.find(packed_st);
 	if (m_lookup.end() != i)
@@ -104,7 +123,7 @@ ID Registry::lookupType (PackedST const & packed_st) const
 
 //----------------------------------------------------------------------
 
-ID Registry::byTag (Tag tag) const
+ID STContainer::byTag (Tag tag) const
 {
 	auto const i = TagToInt(tag);
 	if (i > 0 && i < TagToInt(Tag::Variant))
@@ -115,9 +134,8 @@ ID Registry::byTag (Tag tag) const
 
 //----------------------------------------------------------------------
 
-UnpackedType Registry::unpack (ID id) const
+Unpacked STContainer::unpack (ID id) const
 {
-	return UnpackedType();
 }
 
 //======================================================================

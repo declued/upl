@@ -166,7 +166,7 @@ void TestSTCode ()
 
 	wcout << endl;
 
-	UPL::Type::Registry reg;
+	UPL::Type::STContainer reg;
 
 	auto ir0 = ST::MakeVariant(false, {reg.byTag(Tag::Int), reg.byTag(Tag::Nil), reg.byTag(Tag::String), reg.byTag(Tag::Any)});
 	auto p0 = ST::Pack(ir0);
