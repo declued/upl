@@ -198,15 +198,30 @@ void TestSTCode ()
 	UPL::Type::PackedST p [] = {p0, p1, p2, p3, p4, p5};
 	UPL::Type::ID id [] = {id0, id1, id2, id3, id4, id5};
 
+	wcout << endl;
 	for (int i = 0; i < 6; ++i)
 	{
 		wcout << "(" << ir[i].size() << ")";
-		for (auto b : ir[i]) wcout << std::hex << b;
+		for (auto b : ir[i]) wcout << " " << std::hex << b;
 		wcout << " , ";
 		wcout << "(" << p[i].size() << ")";
-		for (auto b : p[i]) wcout << std::hex << b;
+		for (auto b : p[i]) wcout << " " << std::hex << b;
 		wcout << " , ";
 		wcout << std::dec << id[i] << endl;
+	}
+
+	wcout << endl;
+	for (unsigned i = 0; i < reg.size(); ++i)
+	{
+		wcout << i << " : ";
+		auto u = reg.unpack(i);
+		wcout
+			<< int(u.tag) << ", " << u.is_const << ", "
+			<< u.type1 << ", " << u.type2 << ", " << u.size << ", "
+			<< "(";
+		for (auto v : u.type_list)
+			wcout << " " << v;
+		wcout << ")" << endl;
 	}
 }
 

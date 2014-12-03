@@ -30,6 +30,32 @@ TagInfo_t TagInfo (Tag tag)
 
 //======================================================================
 
+PackedST Unpacked::pack () const
+{
+	switch (tag)
+	{
+	case Tag::INVALID:	return {};
+	case Tag::Nil:		return STCode::Pack(STCode::MakeNil());
+	case Tag::Bool:		return STCode::Pack(STCode::MakeBool(is_const));
+	case Tag::Byte:		return STCode::Pack(STCode::MakeByte(is_const));
+	case Tag::Char:		return STCode::Pack(STCode::MakeChar(is_const));
+	case Tag::Int:		return STCode::Pack(STCode::MakeInt(is_const));
+	case Tag::Real:		return STCode::Pack(STCode::MakeReal(is_const));
+	case Tag::String:	return STCode::Pack(STCode::MakeString(is_const));
+	case Tag::Any:		return STCode::Pack(STCode::MakeAny(is_const));
+	case Tag::Variant:	return STCode::Pack(STCode::MakeVariant(is_const, {type_list.begin(), type_list.end()}));
+	case Tag::Array:	return STCode::Pack(STCode::MakeArray(is_const, size, type1));
+	case Tag::Vector:	return STCode::Pack(STCode::MakeVector(is_const, type1));
+	case Tag::Map:		return STCode::Pack(STCode::MakeMap(is_const, type1, type2));
+	case Tag::Tuple:	return STCode::Pack(STCode::MakeTuple(is_const, type_list));
+	case Tag::Package:	return STCode::Pack(STCode::MakePackage(is_const, type_list));
+	case Tag::Function:	return STCode::Pack(STCode::MakeFuction(is_const, type1, type_list));
+	default:			assert(false); return {};
+	}
+}
+
+//======================================================================
+
 STContainer::STContainer ()
 	: m_types ()
 	, m_stash ()
@@ -37,16 +63,29 @@ STContainer::STContainer ()
 {
 	m_stash.reserve (10000);
 
-	m_types.push_back ({}); m_types.back().bytes[3] = m_types.back().bytes[2] = m_types.back().bytes[1] = m_types.back().bytes[0] = 0;
+	// Make the invalid entry
+	m_types.push_back ({});
+	m_types.back().bytes[0] = 0;
+	m_types.back().bytes[1] = 0;
+	m_types.back().bytes[2] = 0;
+	m_types.back().bytes[3] = 0;
 
-	auto t1 = createType(STCode::Pack(STCode::MakeNil()));			assert (1 == t1);
-	auto t2 = createType(STCode::Pack(STCode::MakeBool(false)));	assert (2 == t2);
-	auto t3 = createType(STCode::Pack(STCode::MakeByte(false)));	assert (3 == t3);
-	auto t4 = createType(STCode::Pack(STCode::MakeChar(false)));	assert (4 == t4);
-	auto t5 = createType(STCode::Pack(STCode::MakeInt(false)));		assert (5 == t5);
-	auto t6 = createType(STCode::Pack(STCode::MakeReal(false)));	assert (6 == t6);
-	auto t7 = createType(STCode::Pack(STCode::MakeString(false)));	assert (7 == t7);
-	auto t8 = createType(STCode::Pack(STCode::MakeAny(false)));		assert (8 == t8);
+	// Make the rest of the default entries
+	auto t01 = createType(STCode::Pack(STCode::MakeNil()));			assert ( 1 == t01);
+	auto t02 = createType(STCode::Pack(STCode::MakeBool(false)));	assert ( 2 == t02);
+	auto t03 = createType(STCode::Pack(STCode::MakeBool(true)));	assert ( 3 == t03);
+	auto t04 = createType(STCode::Pack(STCode::MakeByte(false)));	assert ( 4 == t04);
+	auto t05 = createType(STCode::Pack(STCode::MakeByte(true)));	assert ( 5 == t05);
+	auto t06 = createType(STCode::Pack(STCode::MakeChar(false)));	assert ( 6 == t06);
+	auto t07 = createType(STCode::Pack(STCode::MakeChar(true)));	assert ( 7 == t07);
+	auto t08 = createType(STCode::Pack(STCode::MakeInt(false)));	assert ( 8 == t08);
+	auto t09 = createType(STCode::Pack(STCode::MakeInt(true)));		assert ( 9 == t09);
+	auto t10 = createType(STCode::Pack(STCode::MakeReal(false)));	assert (10 == t10);
+	auto t11 = createType(STCode::Pack(STCode::MakeReal(true)));	assert (11 == t11);
+	auto t12 = createType(STCode::Pack(STCode::MakeString(false)));	assert (12 == t12);
+	auto t13 = createType(STCode::Pack(STCode::MakeString(true)));	assert (13 == t13);
+	auto t14 = createType(STCode::Pack(STCode::MakeAny(false)));	assert (14 == t14);
+	auto t15 = createType(STCode::Pack(STCode::MakeAny(true)));		assert (15 == t15);
 }
 
 //----------------------------------------------------------------------
@@ -95,19 +134,7 @@ ID STContainer::createType (PackedST const & packed_st)
 
 ID STContainer::createType (Unpacked const & unpacked)
 {
-}
-
-//----------------------------------------------------------------------
-bool STContainer::createName (String const & new_name, ID existing_type)
-{
-	if (!isValid(existing_type))
-		return false;
-	if (m_names.find(new_name) != m_names.end())
-		return false;
-
-	m_names[new_name] = existing_type;
-
-	return true;
+	return createType(unpacked.pack());
 }
 
 //----------------------------------------------------------------------
@@ -136,11 +163,114 @@ ID STContainer::byTag (Tag tag) const
 
 Unpacked STContainer::unpack (ID id) const
 {
+	auto t = tag(id);
+	auto c = isConst(id);
+
+	Unpacked ret (t, c);
+
+	switch (t)
+	{
+	case Tag::Variant:
+		ret.type_list = getVariantTypes(id);
+		break;
+	case Tag::Array:
+		ret.size = getArraySize(id);
+		ret.type1 = getArrayType(id);
+		break;
+	case Tag::Vector:
+		ret.type1 = getVectorType(id);
+		break;
+	case Tag::Map:
+		ret.type1 = getMapKeyType(id);
+		ret.type2 = getMapValueType(id);
+		break;
+	case Tag::Tuple:
+		ret.type_list = getTupleTypes(id);
+		break;
+	case Tag::Package:
+		ret.type_list = getPackageTypes(id);
+		break;
+	case Tag::Function:
+		ret.type1 = getFunctionReturnType(id);
+		ret.type_list = getFunctionParamTypes(id);
+		break;
+	};
+
+	return ret;
 }
 
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+
+std::vector<ID> STContainer::getTypeList (ID id) const
+{
+	assert (tag(id) == Tag::Variant || tag(id) == Tag::Tuple || tag(id) == Tag::Package);
+	auto qfetch = [this, id](int q){return this->getQuartet(id, q);};
+	int q = 0;
+
+	auto cnt = STCode::DeserializeInt (qfetch, q);
+	std::vector<ID> ret (cnt);
+	for (auto i = 0; i < cnt; ++i)
+		ret[i] = STCode::DeserializeInt (qfetch, q);
+	return ret;
+}
+
+//----------------------------------------------------------------------
+
+std::vector<ID> STContainer::getParamTypeList (ID id) const
+{
+	assert (tag(id) == Tag::Function);
+	auto qfetch = [this, id](int q){return this->getQuartet(id, q);};
+	int q = 0;
+
+	STCode::DeserializeInt (qfetch, q);
+
+	auto cnt = STCode::DeserializeInt (qfetch, q);
+	std::vector<ID> ret (cnt);
+	for (auto i = 0; i < cnt; ++i)
+		ret[i] = STCode::DeserializeInt (qfetch, q);
+	return ret;
+}
+
+//----------------------------------------------------------------------
+
+ID STContainer::getFirstType (ID id) const
+{
+	assert (tag(id) == Tag::Vector || tag(id) == Tag::Map || tag(id) == Tag::Function);
+	auto qfetch = [this, id](int q){return this->getQuartet(id, q);};
+	int q = 0;
+
+	return STCode::DeserializeInt (qfetch, q);
+}
+
+//----------------------------------------------------------------------
+
+ID STContainer::getSecondType (ID id) const
+{
+	assert (tag(id) == Tag::Array || tag(id) == Tag::Map);
+	auto qfetch = [this, id](int q){return this->getQuartet(id, q);};
+	int q = 0;
+
+	STCode::DeserializeInt (qfetch, q);
+
+	return STCode::DeserializeInt (qfetch, q);
+}
+
+//----------------------------------------------------------------------
+
+Size STContainer::getSize (ID id) const
+{
+	assert (tag(id) == Tag::Array);
+	auto qfetch = [this, id](int q){return this->getQuartet(id, q);};
+	int q = 0;
+
+	return STCode::DeserializeInt (qfetch, q);
+}
+
+//----------------------------------------------------------------------
 //======================================================================
 
-	}	// namespace Details
+	}	// namespace Type
 }	// namespace UPL
 
 //======================================================================

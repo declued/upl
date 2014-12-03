@@ -58,6 +58,11 @@ inline Tag IntToTag (uint8_t i) {return Tag(i);}
 
 //======================================================================
 
+typedef std::basic_string<uint8_t> STIR;	// ST Intermediate Representation!
+typedef std::basic_string<uint8_t> PackedST;
+
+//----------------------------------------------------------------------
+
 struct Unpacked
 {
 	Tag tag = Tag::INVALID;
@@ -68,19 +73,16 @@ struct Unpacked
 	bool is_const = false;
 
 	Unpacked () {}
-	explicit Unpacked (Tag tag_) : tag (tag_) {}
-	Unpacked (Tag tag_, ID type1_) : tag (tag_), type1 (type1_) {}
-	Unpacked (Tag tag_, ID type1_, ID type2_, Size size_) : tag (tag_), type1 (type1_), type2 (type2_), size (size_) {}
-	Unpacked (Tag tag_, std::vector<ID> type_list_) : tag (tag_), type_list (std::move(type_list_)) {}
-	Unpacked (Tag tag_, ID type1_, std::vector<ID> type_list_) : tag (tag_), type1 (type1_), type_list (std::move(type_list_)) {}
+	explicit Unpacked (Tag tag_, bool is_const_) : tag (tag_), is_const (is_const_) {}
+	Unpacked (Tag tag_, bool is_const_, ID type1_) : tag (tag_), type1 (type1_), is_const (is_const_) {}
+	Unpacked (Tag tag_, bool is_const_, ID type1_, ID type2_, Size size_) : tag (tag_), type1 (type1_), type2 (type2_), size (size_), is_const (is_const_) {}
+	Unpacked (Tag tag_, bool is_const_, std::vector<ID> type_list_) : tag (tag_), type_list (std::move(type_list_)), is_const (is_const_) {}
+	Unpacked (Tag tag_, bool is_const_, ID type1_, std::vector<ID> type_list_) : tag (tag_), type1 (type1_), type_list (std::move(type_list_)), is_const (is_const_) {}
+
+	PackedST pack () const;
 };
 
 //======================================================================
-
-typedef std::basic_string<uint8_t> STIR;	// ST Intermediate Representation!
-typedef std::basic_string<uint8_t> PackedST;
-
-//----------------------------------------------------------------------
 
 class STCode
 {
@@ -100,6 +102,13 @@ public:
 	static inline void RetagLengthOddness (STIR & st_ir);
 
 	static inline STIR SerializeInt (uint32_t v);
+	static inline uint32_t DeserializeInt (uint8_t const * const mem, unsigned & start_qrtt);
+	
+	// Returns the deserialized number and the number of quartets it required
+	template <typename F>
+	static inline std::pair<uint32_t, int> DeserializeInt (int base_quartet, F const & quartet_fetcher);
+	template <typename F>
+	static inline uint32_t DeserializeInt (F const & quartet_fetcher, int & start_quartet);
 
 	static inline STIR MakeInvalid ();
 	static inline STIR MakeBasic (bool is_const, Tag tag);
@@ -129,7 +138,8 @@ public:
 	static inline bool IsValid (PackedST const & packed_st);
 
 private:
-	static inline uint8_t Qrtt (uint32_t v, int quartet);	// Zero is the low-order 4 bits
+	static inline uint8_t Qrtt (uint32_t v, unsigned quartet);	// Zero is the low-order 4 bits
+	static inline uint8_t Qrtt (uint8_t const * packed_mem, unsigned quartet);	// Zero is the high-order 4 bits
 };
 
 //----------------------------------------------------------------------
@@ -140,15 +150,15 @@ class STContainer
 private:
 	struct Entry { uint8_t bytes [4]; };
 	typedef std::unordered_map<PackedST, ID> TypeLookup;
-	typedef std::unordered_map<String, ID> NameLookup;
 
 public:
 	STContainer ();
 	~STContainer ();
 
+	size_t size () const {return m_types.size();}
+
 	ID createType (PackedST const & packed_st);
 	ID createType (Unpacked const & unpacked);
-	bool createName (String const & new_name, ID existing_type);
 
 	ID lookupType (PackedST const & packed_st) const;
 	ID byTag (Tag tag) const;
@@ -156,6 +166,17 @@ public:
 	inline bool isValid (ID id) const;
 	inline Tag tag (ID id) const;
 	inline bool isConst (ID id) const;
+
+	inline std::vector<ID> getVariantTypes (ID id) const;
+	inline std::vector<ID> getTupleTypes (ID id) const;
+	inline std::vector<ID> getPackageTypes (ID id) const;
+	inline std::vector<ID> getFunctionParamTypes (ID id) const;
+	inline ID getArrayType (ID id) const;
+	inline ID getVectorType (ID id) const;
+	inline ID getMapKeyType (ID id) const;
+	inline ID getMapValueType (ID id) const;
+	inline ID getFunctionReturnType (ID id) const;
+	inline Size getArraySize (ID id) const;
 
 	Unpacked unpack (ID id) const;
 
@@ -168,11 +189,16 @@ private:
 	inline uint8_t getByte (ID id, int b) const;
 	inline uint8_t getQuartet (ID id, int q) const;	// Starting from _after_ the first byte (the tag byte.)
 
+	std::vector<ID> getTypeList (ID id) const;		// For Variant, Tuple, Package
+	std::vector<ID> getParamTypeList (ID id) const;	// For Function
+	ID getFirstType (ID id) const;					// For Array, Vector, Map (key), Function (return type)
+	ID getSecondType (ID id) const;					// For Map (value)
+	Size getSize (ID id) const;						// For Array
+
 private:
 	std::vector<Entry> m_types;
 	std::basic_string<uint8_t> m_stash;
 	TypeLookup m_lookup;
-	NameLookup m_names;
 
 private:
 	static_assert (sizeof(Entry) == 4, "Entry was expected to be 4 bytes long.");
@@ -205,7 +231,9 @@ inline uint8_t STCode::SerializeTag (Tag tag, bool is_const, bool is_odd_length)
 
 inline Tag STCode::GetTag (uint8_t serialized_tag)
 {
-	return IntToTag (serialized_tag & (msc_ConstnessBit - 1));
+	static_assert (msc_OddLengthBit < msc_ConstnessBit, "");
+
+	return IntToTag (serialized_tag & (msc_OddLengthBit - 1));
 }
 
 //----------------------------------------------------------------------
@@ -261,6 +289,52 @@ inline STIR STCode::SerializeInt (uint32_t v)
 		return STIR({uint8_t(7+7), Qrtt(v,6), Qrtt(v,5), Qrtt(v,4), Qrtt(v,3), Qrtt(v,2), Qrtt(v,1), Qrtt(v,0)});
 	else
 		return STIR({uint8_t(7+8), Qrtt(v,7), Qrtt(v,6), Qrtt(v,5), Qrtt(v,4), Qrtt(v,3), Qrtt(v,2), Qrtt(v,1), Qrtt(v,0)});
+}
+
+//----------------------------------------------------------------------
+
+inline uint32_t STCode::DeserializeInt (uint8_t const * const packed_mem, unsigned & q)
+{
+	auto len = Qrtt(packed_mem, q++);
+
+	if (len < 8) return len;
+	
+	uint32_t ret = 0;
+	for (int i = len - 7; i > 0; --i)
+		ret = (ret << 4) | Qrtt(packed_mem, q++);
+
+	return ret;
+}
+
+//----------------------------------------------------------------------
+
+template <typename F>
+inline std::pair<uint32_t, int> STCode::DeserializeInt (int base_quartet, F const & quartet_fetcher)
+{
+	uint8_t len = quartet_fetcher(base_quartet + 0);
+	if (len < 8) return {len, 1};
+	
+	len -= 6;
+	uint32_t ret = 0;
+	for (int i = 1; i < len; ++i)
+		ret = (ret << 4) | quartet_fetcher(base_quartet + i);
+
+	return {ret, len};
+}
+
+//----------------------------------------------------------------------
+
+template <typename F>
+inline uint32_t STCode::DeserializeInt (F const & quartet_fetcher, int & start_quartet)
+{
+	auto len = quartet_fetcher (start_quartet++);
+	if (len < 8) return len;
+	
+	uint32_t ret = 0;
+	for (int i = len - 7; i > 0; --i)
+		ret = (ret << 4) | quartet_fetcher(start_quartet++);
+
+	return ret;
 }
 
 //----------------------------------------------------------------------
@@ -450,9 +524,17 @@ inline bool STCode::IsValid (PackedST const & packed_st)
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 
-inline uint8_t STCode::Qrtt (uint32_t v, int quartet)
+inline uint8_t STCode::Qrtt (uint32_t v, unsigned quartet)
 {
 	return (v >> (4 * quartet)) & 0x0F;
+}
+
+//----------------------------------------------------------------------
+
+inline uint8_t STCode::Qrtt (uint8_t const * packed_mem, unsigned quartet)
+{
+	unsigned const shift = 4 * (1 - (quartet & 1));
+	return (packed_mem[quartet >> 1] >> shift) & 0x0F;
 }
 
 //======================================================================
@@ -483,6 +565,75 @@ inline bool STContainer::isConst (ID id) const
 }
 
 //----------------------------------------------------------------------
+
+inline std::vector<ID> STContainer::getVariantTypes (ID id) const
+{
+	return getTypeList(id);
+}
+
+//----------------------------------------------------------------------
+
+inline std::vector<ID> STContainer::getTupleTypes (ID id) const
+{
+	return getTypeList(id);
+}
+
+//----------------------------------------------------------------------
+
+inline std::vector<ID> STContainer::getPackageTypes (ID id) const
+{
+	return getTypeList(id);
+}
+
+//----------------------------------------------------------------------
+
+inline std::vector<ID> STContainer::getFunctionParamTypes (ID id) const
+{
+	return getParamTypeList(id);
+}
+
+//----------------------------------------------------------------------
+
+inline ID STContainer::getArrayType (ID id) const
+{
+	return getSecondType(id);
+}
+
+//----------------------------------------------------------------------
+
+inline ID STContainer::getVectorType (ID id) const
+{
+	return getFirstType(id);
+}
+
+//----------------------------------------------------------------------
+
+inline ID STContainer::getMapKeyType (ID id) const
+{
+	return getFirstType(id);
+}
+
+//----------------------------------------------------------------------
+
+inline ID STContainer::getMapValueType (ID id) const
+{
+	return getSecondType(id);
+}
+
+//----------------------------------------------------------------------
+
+inline ID STContainer::getFunctionReturnType (ID id) const
+{
+	return getFirstType(id);
+}
+
+//----------------------------------------------------------------------
+
+inline Size STContainer::getArraySize (ID id) const
+{
+	return getSize(id);
+}
+
 //----------------------------------------------------------------------
 
 inline bool STContainer::isInline (ID id) const
