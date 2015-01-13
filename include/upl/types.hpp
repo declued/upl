@@ -26,6 +26,7 @@ public:
 	~ScopedRegistry ();
 
 	bool createName (String const & new_name, ID existing_type);
+	ID findByName (String const & name) const;
 
 private:
 	STContainer * m_st_container = nullptr;

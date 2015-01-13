@@ -33,7 +33,7 @@ class Declaration : public Node
 
 //----------------------------------------------------------------------
 
-class Expression : public ExprBase
+class Expression : public ExprBaseParent
 {
 };
 

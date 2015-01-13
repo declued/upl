@@ -38,6 +38,19 @@ bool ScopedRegistry::createName (String const & new_name, ID existing_type)
 }
 
 //----------------------------------------------------------------------
+
+ID ScopedRegistry::findByName (String const & name) const
+{
+	auto i = m_names.find(name);
+
+	if (m_names.end() != i)
+		return i->second;
+	else if (nullptr != m_parent)
+		return m_parent->findByName(name);
+	else
+		return InvalidID;
+}
+
 //----------------------------------------------------------------------
 //======================================================================
 

@@ -13,10 +13,14 @@ namespace UPL {
 
 //======================================================================
 
+using AST::Ptr;
+
+//======================================================================
+
 class Parser
 {
 public:
-	Parser (Lexer & lexer, Error::Reporter & reporter);
+	Parser (Lexer & lexer, Error::Reporter & reporter, Type::STContainer & type_container);
 
 	// Non-copyable and non-movable (for now.)
 	Parser (Parser const &) = delete;
@@ -24,18 +28,21 @@ public:
 	Parser & operator = (Parser const &) = delete;
 	Parser & operator = (Parser &&) = delete;
 
-	AST::Node * parse ();
+	Ptr<AST::Node> parse ();
 
 private:
-	AST::Program * parseProgram ();
-	AST::Statement * parseStatement ();
-	AST::Declaration * parseDeclaration ();
-	AST::Expression * parseExpression ();
+	Ptr<AST::Program> parseProgram ();
+	Ptr<AST::Statement> parseStatement ();
+	Ptr<AST::Declaration> parseDeclaration ();
+	Ptr<AST::Expression> parseExpression ();
 	// .
 	// .
 	// .
+	
+	bool haveMoreTokens () const {return m_lexer.curr().isnt(TT::EOI) && m_lexer.curr().isnt(TT::Error);}
 
 private:
+	Type::STContainer & m_type_container;
 	Lexer & m_lexer;
 	Error::Reporter & m_reporter;
 };

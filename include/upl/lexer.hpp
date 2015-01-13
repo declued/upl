@@ -35,7 +35,7 @@ private:
 	bool consume_whitespace();
 	bool consume_comment();
 	bool pop_name();
-	bool pop_bool_literal();
+	//bool pop_bool_literal();
 	bool pop_numeric_literal();
 	bool pop_string_literal();
 	bool pop_separator_or_operator();
