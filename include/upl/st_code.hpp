@@ -18,14 +18,14 @@
  * implementation as a workaround.
  */
 namespace std {
-  template <> struct hash<basic_string<uint8_t> >
-  {
-    inline size_t operator()(const basic_string<uint8_t> & us) const
-    {
-      hash<char *> cstring_hash;
-      return cstring_hash((char *) us.c_str());
-    }
-  };
+	template <> struct hash<basic_string<uint8_t> >
+	{
+		inline size_t operator()(const basic_string<uint8_t> & us) const
+		{
+			hash<char *> cstring_hash;
+			return cstring_hash((char *) us.c_str());
+		}
+	};
 }
 
 #endif /* __GNUG__ */
