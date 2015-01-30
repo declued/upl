@@ -6,6 +6,7 @@
 #include <upl/definitions.hpp>
 #include <upl/ast_details.hpp>
 
+#include <list>
 #include <memory>
 
 //======================================================================
@@ -15,10 +16,6 @@ namespace UPL {
 
 //======================================================================
 
-class Program : public Parent
-{
-};
-
 //----------------------------------------------------------------------
 
 class Statement : public Node
@@ -27,15 +24,28 @@ class Statement : public Node
 
 //----------------------------------------------------------------------
 
-class Declaration : public Node
+class Expression : public Statement
 {
 };
 
 //----------------------------------------------------------------------
 
-class Expression : public ExprBase
+class Declaration : public Statement
 {
 };
+
+//----------------------------------------------------------------------
+
+class Program : public Parent
+{
+public:
+	std::list<Statement *> statements;
+
+	Node * clone () const { return NULL; }
+	String printable (int depth = 0) const { return String(); }
+};
+
+//----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
 //======================================================================
