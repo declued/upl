@@ -41,8 +41,8 @@ class Program : public Parent
 public:
 	std::list<Statement *> statements;
 
-	Node * clone () const { return NULL; }
-	String printable (int depth = 0) const { return String(); }
+	Node * clone () const { return nullptr; }
+	String printable (int /*depth*/ = 0) const { return String(); }
 };
 
 //----------------------------------------------------------------------
