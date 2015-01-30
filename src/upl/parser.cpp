@@ -8,59 +8,108 @@ namespace UPL {
 
 //======================================================================
 
-Parser::Parser (Lexer & lexer, Error::Reporter & reporter, Type::STContainer & type_container)
-	: m_type_container (type_container)
-	, m_lexer (lexer)
-	, m_reporter (reporter)
+Parser::Parser (Lexer & lexer, Error::Reporter & reporter):
+	m_lexer (lexer), m_reporter(reporter)
 {
 }
 
 //----------------------------------------------------------------------
 
-Ptr<AST::Node> Parser::parse ()
+AST::Program * Parser::parseProgram ()
 {
-	return parseProgram();
-}
+	AST::Program *program = new AST::Program;
+	AST::Statement *statement = NULL;
 
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
+	while ((statement = parseStatement()) != NULL) {
+		program->statements.push_back(statement);
+	}
 
-Ptr<AST::Program> Parser::parseProgram ()
-{
-	if (!haveMoreTokens())
-		return nullptr;
-
-	auto ret = new AST::Program ();
-
-	while (haveMoreTokens())
-		ret->addChild (parseStatement());
-
-	return ret;
+	return program;
 }
 
 //----------------------------------------------------------------------
 
-Ptr<AST::Statement> Parser::parseStatement ()
+AST::Statement * Parser::parseStatement ()
 {
-	return nullptr;
+	AST::Statement *statement = NULL;
+
+	statement = parseDeclaration();
+	if (statement == NULL) {
+		statement = parseExpression();
+	}
+
+	return statement;
 }
 
 //----------------------------------------------------------------------
 
-Ptr<AST::Declaration> Parser::parseDeclaration ()
+AST::Declaration * Parser::parseDeclaration ()
 {
-	return nullptr;
+	AST::Declaration *declaration = NULL;
+
+	Token declarator = m_lexer.curr();
+	if (!declarator.is(TT::KeywordBool) &&
+		!declarator.is(TT::KeywordInt) &&
+		!declarator.is(TT::KeywordReal))
+	{
+		return NULL;
+	}
+
+	m_lexer.pop();
+
+	Token identifier = m_lexer.curr();
+	if (!identifier.is(TT::Identifier))
+	{
+		return NULL;
+	}
+
+	m_lexer.pop();
+
+	if (!m_lexer.curr().is(TT::Assignment))
+	{
+		return NULL;
+	}
+
+	m_lexer.pop();
+
+	AST::Expression *expression = parseExpression();
+	if (expression == NULL)
+	{
+		return NULL;
+	}
+
+	if (!m_lexer.curr().is(TT::StatementSep))
+	{
+		return NULL;
+	}
+
+	m_lexer.pop();
+
+	return declaration;
 }
 
 //----------------------------------------------------------------------
 
-Ptr<AST::Expression> Parser::parseExpression ()
+AST::Expression * Parser::parseExpression ()
 {
-	return nullptr;
+	AST::Expression *expression = NULL;
+
+	Token literal = m_lexer.curr();
+	if (!literal.is(TT::BoolLiteral) &&
+		!literal.is(TT::IntLiteral) &&
+		!literal.is(TT::RealLiteral) &&
+		!literal.is(TT::StrLiteral))
+	{
+		return NULL;
+	}
+
+	m_lexer.pop();
+
+	return expression;
 }
 
 //----------------------------------------------------------------------
-//----------------------------------------------------------------------
+
 //======================================================================
 
 }	// namespace UPL

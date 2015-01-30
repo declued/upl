@@ -115,7 +115,7 @@ ID STContainer::createType (PackedST const & packed_st)
 	if (packed_st.size() <= sizeof(Entry))	// Put it in-line
 	{
 		cur.bytes[3] = cur.bytes[2] = cur.bytes[1] = cur.bytes[0] = 0;
-		for (int i = 0; i < packed_st.size() && i < 4; ++i)
+		for (size_t i = 0; i < packed_st.size() && i < 4; ++i)
 			cur.bytes[i] = packed_st[i];
 		setInlineEntry (cur_id, true);
 	}
@@ -194,6 +194,33 @@ Unpacked STContainer::unpack (ID id) const
 		ret.type1 = getFunctionReturnType(id);
 		ret.type_list = getFunctionParamTypes(id);
 		break;
+	case Tag::Nil:
+		/* TODO */
+		break;
+	case Tag::Bool:
+		/* TODO */
+		break;
+	case Tag::Byte:
+		/* TODO */
+		break;
+	case Tag::Char:
+		/* TODO */
+		break;
+	case Tag::Int:
+		/* TODO */
+		break;
+	case Tag::Real:
+		/* TODO */
+		break;
+	case Tag::String:
+		/* TODO */
+		break;
+	case Tag::Any:
+		/* TODO */
+		break;
+	case Tag::INVALID:
+		/* TODO */
+		break;
 	};
 
 	return ret;
@@ -208,9 +235,9 @@ std::vector<ID> STContainer::getTypeList (ID id) const
 	auto qfetch = [this, id](int q){return this->getQuartet(id, q);};
 	int q = 0;
 
-	auto cnt = STCode::DeserializeInt (qfetch, q);
+	size_t cnt = STCode::DeserializeInt (qfetch, q);
 	std::vector<ID> ret (cnt);
-	for (auto i = 0; i < cnt; ++i)
+	for (size_t i = 0; i < cnt; ++i)
 		ret[i] = STCode::DeserializeInt (qfetch, q);
 	return ret;
 }
@@ -225,9 +252,9 @@ std::vector<ID> STContainer::getParamTypeList (ID id) const
 
 	STCode::DeserializeInt (qfetch, q);
 
-	auto cnt = STCode::DeserializeInt (qfetch, q);
+	size_t cnt = STCode::DeserializeInt (qfetch, q);
 	std::vector<ID> ret (cnt);
-	for (auto i = 0; i < cnt; ++i)
+	for (size_t i = 0; i < cnt; ++i)
 		ret[i] = STCode::DeserializeInt (qfetch, q);
 	return ret;
 }
