@@ -11,6 +11,27 @@
 
 //======================================================================
 
+#ifdef __GNUG__
+
+/*
+ * GCC seems to not have hash<basic_string<uint8_t> >. We provide a simple
+ * implementation as a workaround.
+ */
+namespace std {
+  template <> struct hash<basic_string<uint8_t> >
+  {
+    inline size_t operator()(const basic_string<uint8_t> & us) const
+    {
+      hash<char *> cstring_hash;
+      return cstring_hash((char *) us.c_str());
+    }
+  };
+}
+
+#endif /* __GNUG__ */
+
+//======================================================================
+
 namespace UPL {
 	namespace Type {
 	
